@@ -1,6 +1,7 @@
 package iot;
 
 import EnvironmentAPI.PollutionEnvironment;
+import EnvironmentAPI.SensorEnvironment;
 import application.pollution.PollutionGrid;
 import application.pollution.PollutionMonitor;
 import application.routing.KAStarRouter;
@@ -65,6 +66,7 @@ public class Simulation {
     private Integer time;
     private PollutionGrid pollutionGrid;
     private LocalTime startTime;
+    private SensorEnvironment sensorEnvironment;
     private PollutionEnvironment pollutionEnvironment;
     private HashMap<Mote,List<Long>> buffer;
     private HashMap<Mote,Boolean> synhronisedError;
@@ -81,6 +83,11 @@ public class Simulation {
         this.pollutionGrid = pollutionGrid;
     }
 
+    public void setSensorEnvironment(SensorEnvironment sensorEnvironment)
+    {
+        this.sensorEnvironment = sensorEnvironment;
+    }
+
     public void setPollutionEnvironment(PollutionEnvironment pollutionEnvironment)
     {
         this.pollutionEnvironment = pollutionEnvironment;
@@ -89,11 +96,12 @@ public class Simulation {
 
     // region constructors
 
-    public Simulation(PollutionGrid pollutionGrid, PollutionEnvironment pollutionEnvironment,SimulationRunner simulationRunner) {
-        this.routeEvaluator = new RouteEvaluator(pollutionGrid,pollutionEnvironment);
+    public Simulation(PollutionGrid pollutionGrid, SensorEnvironment sensorEnvironment, PollutionEnvironment pollutionEnvironment, SimulationRunner simulationRunner) {
+        this.routeEvaluator = new RouteEvaluator(pollutionGrid,sensorEnvironment);
         setPollutionGrid(pollutionGrid);
-        setPollutionEnvironment(pollutionEnvironment);
+        setSensorEnvironment(sensorEnvironment);
         this.finished = false;
+        setPollutionEnvironment(pollutionEnvironment);
         this.simulationRunner = simulationRunner;
     }
 
@@ -235,7 +243,11 @@ public class Simulation {
 
     public void simulateIdealSituation (UserMote mote) {
         time = 0;
-        routingApplication.calculateRoutingAdaptations(mote, Objects.requireNonNull(environment.get()));
+        routingApplication.calculateRoutingAdaptations(mote, Objects.requireNonNull(environment.get()),sensorEnvironment);
+
+        routingApplication.reset();
+        pollutionEnvironment.clear();
+
         System.out.println("size : " + mote.getChangesPath().size() );
         mote.getChangesPath().entrySet().stream()
             .forEach(entry -> {
@@ -252,7 +264,7 @@ public class Simulation {
     /**
      * Simulate a single step in the simulator.
      */
-    public synchronized void simulateStep() {
+    public synchronized void simulateStep(PollutionEnvironment Pollenvironment) {
         //noinspection SimplifyStreamApiCallChains
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
@@ -406,6 +418,7 @@ public class Simulation {
             time += 1;
         }
 
+        Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
         this.getEnvironment().getClock().tick(1);
         time += 1;
 
@@ -607,7 +620,7 @@ public class Simulation {
         this.setupSimulation((env) -> env.getClock().getTime().isBefore(finalTime));
     }
 
-    public void simulateStepRun() {
+    public void simulateStepRun(PollutionEnvironment Pollenvironment) {
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
             .filter(mote -> !(mote instanceof UserMote))
@@ -642,6 +655,7 @@ public class Simulation {
                     wayPointMap.put(mote, wayPointMap.get(mote) + 1);
                 }
             });
+        Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
         this.getEnvironment().getClock().tick(1);
     }
 

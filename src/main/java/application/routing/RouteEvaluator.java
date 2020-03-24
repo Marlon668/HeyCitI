@@ -1,6 +1,7 @@
 package application.routing;
 
 import EnvironmentAPI.PollutionEnvironment;
+import EnvironmentAPI.SensorEnvironment;
 import application.pollution.PollutionGrid;
 import application.routing.heuristic.RoutingHeuristic;
 import application.routing.heuristic.SimplePollutionHeuristic;
@@ -24,7 +25,7 @@ public class RouteEvaluator extends Evaluator {
     private Map<Long, Pair<Integer,Connection>> amountConnectionUsed;
     private Map<Long,Double> lastMeasurementOfMote;
 
-    public RouteEvaluator(PollutionGrid pollutionGrid, PollutionEnvironment pollutionEnvironment){
+    public RouteEvaluator(PollutionGrid pollutionGrid, SensorEnvironment pollutionEnvironment){
         super();
         this.firstVisitedWaypointByMote = new HashMap<Long,Long>();
         this.lastUsedConnectionByMote = new HashMap<Long,Connection>();

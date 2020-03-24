@@ -1,6 +1,7 @@
 package gui.util;
 
 import EnvironmentAPI.PollutionEnvironment;
+import EnvironmentAPI.SensorEnvironment;
 import application.pollution.PollutionGrid;
 
 import application.routing.RoutingApplication;
@@ -145,6 +146,32 @@ public class CompoundPainterBuilder {
     }
 
     /**
+     * Include a painter of a pollution grid in the builder.
+     * @param environment The environment to which the pollution grid belongs.
+     * @param pollution   The pollution environment which should be painted.
+     * @return The current object.
+     */
+    public CompoundPainterBuilder withEnvironmentAPI(Environment environment, SensorEnvironment pollution) {
+        painters.add(new PollutionEnvironmentPainter(environment, pollution));
+        return this;
+    }
+
+    public CompoundPainterBuilder withEnvironmentAPISensor(Environment environment, SensorEnvironment pollution) {
+        painters.add(new SensorEnvironmentPainter(environment, pollution));
+        return this;
+    }
+
+    public CompoundPainterBuilder withSources(Environment environment, SensorEnvironment pollution) {
+        painters.add(new SourcePainter(environment, pollution));
+        return this;
+    }
+
+    public CompoundPainterBuilder withSensors(Environment environment, SensorEnvironment pollution) {
+        painters.add(new SensorPainter(environment, pollution));
+        return this;
+    }
+
+    /**
      * Include a painter for the stored routing path (at {@code routingApplication}) for the currently active user mote (if present)
      * @param environment The environment which contains the user mote.
      * @param routingApplication The routing application which stores the user mote's path.
@@ -164,17 +191,6 @@ public class CompoundPainterBuilder {
         return this;
     }
 
-    /**
-     * Include a painter of a pollution grid in the builder.
-     * @param environment The environment to which the pollution grid belongs.
-     * @param pollution   The pollution environment which should be painted.
-     * @return The current object.
-     */
-    public CompoundPainterBuilder withEnvironmentAPI(Environment environment, PollutionEnvironment pollution) {
-        painters.add(new PollutionEnvironmentPainter(environment, pollution));
-        return this;
-    }
-
 
     /**
      * Build a {@link CompoundPainter} which has all the painters added to this builder.
@@ -182,5 +198,10 @@ public class CompoundPainterBuilder {
      */
     public CompoundPainter<JXMapViewer> build() {
         return new CompoundPainter<>(painters);
+    }
+
+    public CompoundPainterBuilder withSelected(Environment environment, String text) {
+        painters.add(new SelectedPainter(environment, text));
+        return this;
     }
 }

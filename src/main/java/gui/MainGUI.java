@@ -26,6 +26,7 @@ import util.Pair;
 import util.Statistics;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.MouseInputListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -36,10 +37,8 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -106,7 +105,10 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private JButton openPollutionEnvironmentButton;
     private JButton savePollutionConfigButton;
     private JButton multipleRunButton;
-    private HashMap<Mote,Color> colorMap;
+    private JButton configureEnvironmentButton;
+    private JComboBox environmentChoice;
+    private JButton configureSensorsButton;
+    private JButton editButton;
 
     private static JXMapViewer mapViewer = new JXMapViewer();
     // Create a TileFactoryInfo for OpenStreetMap
@@ -167,6 +169,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         editRelComButton.setEnabled(false);
         configureButton.setEnabled(false);
         saveConfigurationButton.setEnabled(false);
+        editButton.setEnabled(true);
 
 
         // ==============================================
@@ -184,7 +187,9 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         simulationSaveButton.addActionListener(new SaveSimulationResultListener());
         openPollutionEnvironmentButton.addActionListener(new OpenPollutionEnvironmentListener());
         savePollutionConfigButton.addActionListener(new SavePollutionConfigurationListener());
-
+        configureEnvironmentButton.addActionListener(new ConfigurePollutionActionListener(this, simulationRunner));
+        configureSensorsButton.addActionListener(new ConfigureSensorActionListener(this, simulationRunner));
+        editButton.addActionListener(new editParametersListener(this));
 
         regionButton.addActionListener(e -> this.setPollutionGraphs(simulationRunner.getEnvironment()));
 
@@ -212,7 +217,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             if (simulationRunner.getSimulation().getInputProfile().isEmpty()) {
                 showNoInputProfileSelectedError();
                 return;
-            }
+           }
 
             this.setEnabledRunButtons(false);
             synchronized (simulationRunner) {
@@ -221,6 +226,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             }
             this.setConfigurationButtons(false);
         });
+
 
         timedRunButton.addActionListener(e -> {
             if (simulationRunner.getSimulation().getInputProfile().isEmpty()) {
@@ -289,6 +295,10 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         speedSlider.addChangeListener(
             e -> this.simulationSpeed.setValue(GUISettings.BASE_VISUALIZATION_SPEED * speedSlider.getValue())
         );
+        environmentChoice.addItem("Pollution sensor view");
+        environmentChoice.addItem("Pollution sources view");
+
+        environmentChoice.addActionListener((ActionEvent e) -> loadMap(true));
     }
 
 
@@ -504,17 +514,28 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             mapViewer.setZoom(5);
         }
 
-        mapViewer.setOverlayPainter(new CompoundPainterBuilder()
-            .withEnvironmentAPI(environment, simulationRunner.getEnvironmentAPI())
-            //.withPollutionGrid(environment, simulationRunner.getPollutionGrid())
-            .withMotes(environment)
+        if (Objects.requireNonNull(environmentChoice.getSelectedItem()).toString().equals("Pollution sources view")) {
+            mapViewer.setOverlayPainter(new CompoundPainterBuilder()
+                .withEnvironmentAPI(environment, simulationRunner.getEnvironmentAPI())
+                .withSources(environment, simulationRunner.getEnvironmentAPI())
+                .withMotes(environment)
+                .withRoutingPath(environment, simulationRunner.getRoutingApplication())
+                .withMotePaths(environment, simulationRunner.getSimulation().getApproach())
+                .withMotes(environment)
+                .withGateways(environment)
+                .build()
+            );
+        }
+        else{mapViewer.setOverlayPainter(new CompoundPainterBuilder()
+            .withEnvironmentAPISensor(environment, simulationRunner.getEnvironmentAPI())
             .withRoutingPath(environment, simulationRunner.getRoutingApplication())
-            .withMotePaths(environment,simulationRunner.getSimulation().getApproach())
-            .withMotePaths(environment,null)
+            .withMotePaths(environment, simulationRunner.getSimulation().getApproach())
+            .withMotes(environment)
             .withGateways(environment)
+            .withSensors(environment, simulationRunner.getEnvironmentAPI())
             .build()
         );
-
+        }
         map.add(mapViewer);
 
         double latitude = environment.getMapCenter().getLatitude();
@@ -606,10 +627,6 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         updateGraph.accept(carbonDioxideField, ChartGenerator.generateCarbonDioxideGraph(environment, tileFactory, this));
         updateGraph.accept(sootPanel, ChartGenerator.generateSootGraph(environment, tileFactory, this));
         updateGraph.accept(ozonePanel, ChartGenerator.generateOzoneGraph(environment, tileFactory, this));
-    }
-
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
     }
 
     // endregion
@@ -748,6 +765,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
                 if (currentProfile.isPresent() && inputProfile == currentProfile.get()) {
                     simulation.setInputProfile(null);
                     editRelComButton.setEnabled(false);
+                    editButton.setEnabled(false);
                     editColBoundButton.setEnabled(false);
                     editEnConButton.setEnabled(false);
                 } else {
@@ -788,6 +806,104 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
         }
     }
+
+    private class ConfigurePollutionActionListener implements ActionListener {
+        private MainGUI gui;
+        private SimulationRunner simulationRunner;
+
+
+        ConfigurePollutionActionListener(MainGUI gui, SimulationRunner simRunner) {
+            this.gui = gui;
+            this.simulationRunner = simRunner;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (simulationRunner.getRoutingApplication() == null) {
+                showNoConfigurationSelectedError();
+                return;
+            }
+            JFrame frame = new JFrame("Configure Pollution environment");
+            PollutionConfig pollutionConfigureGUI = new PollutionConfig(gui, frame, simulationRunner);
+            frame.setContentPane(pollutionConfigureGUI.getMainPanel());
+            frame.setMinimumSize(pollutionConfigureGUI.getMainPanel().getMinimumSize());
+            frame.setPreferredSize(pollutionConfigureGUI.getMainPanel().getPreferredSize());
+            frame.setVisible(true);
+
+        }
+    }
+
+    private class ConfigureSensorActionListener implements ActionListener {
+        private MainGUI gui;
+        private SimulationRunner simulationRunner;
+
+
+        ConfigureSensorActionListener(MainGUI gui, SimulationRunner simRunner) {
+            this.gui = gui;
+            this.simulationRunner = simRunner;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (simulationRunner.getRoutingApplication() == null) {
+                showNoConfigurationSelectedError();
+                return;
+            }
+            JFrame frame = new JFrame("Configure Sensors");
+            SensorConfig sensorConfig = new SensorConfig(gui, frame, simulationRunner);
+            frame.setContentPane(sensorConfig.getMainPanel());
+            frame.setMinimumSize(sensorConfig.getMainPanel().getMinimumSize());
+            frame.setPreferredSize(sensorConfig.getMainPanel().getPreferredSize());
+            frame.setVisible(true);
+
+        }
+    }
+
+    private class editParametersListener implements ActionListener {
+        private MainGUI gui;
+
+        editParametersListener(MainGUI gui) {
+            this.gui = gui;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Open Parameters");
+            fc.setFileFilter(new FileNameExtensionFilter("xml configuration", "xml"));
+
+            File file = new File(MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+            String basePath = file.getParentFile().getParent();
+            fc.setCurrentDirectory(new File(Paths.get(basePath, "settings", "parameters").toUri()));
+
+            int returnVal = fc.showOpenDialog(mainPanel);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                JFrame frame = new JFrame("Loading parameters");
+                LoadingGUI loadingGUI = new LoadingGUI();
+                frame.setContentPane(loadingGUI.getMainPanel());
+                frame.setMinimumSize(new Dimension(300, 300));
+                frame.setVisible(true);
+                frame.dispose();
+
+                simulationRunner.loadParametersFromFile(fc.getSelectedFile());
+
+
+                frame.setTitle("Edit parameters");
+                System.out.println(simulationRunner.getParameters()==null);
+
+                editParameters editParameters =
+                    new editParameters(simulationRunner.getParameters(),simulationRunner);
+                frame.setContentPane(editParameters.getMainPanel());
+                frame.setMinimumSize(editParameters.getMainPanel().getMinimumSize());
+                frame.setPreferredSize(editParameters.getMainPanel().getPreferredSize());
+                frame.setVisible(true);
+
+                editButton.setEnabled(true);
+            }
+        }
+    }
+
 
     private class OpenConfigurationListener implements ActionListener {
         @Override
@@ -864,13 +980,17 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private class SavePollutionConfigurationListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
+            if (simulationRunner.getRoutingApplication() == null) {
+                showNoConfigurationSelectedError();
+                return;
+            }
             JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Save PollutionConfiguration");
             fc.setFileFilter(new FileNameExtensionFilter("xml output", "xml"));
 
             File file = new File(MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath());
             String basePath = file.getParentFile().getParent();
-            fc.setCurrentDirectory(new File(Paths.get(basePath, "src", "main","java","EnvironmentAPI","Configurations").toUri()));
+            fc.setCurrentDirectory(new File(Paths.get(basePath, "src", "main", "java", "EnvironmentAPI", "Configurations").toUri()));
 
             int returnVal = fc.showSaveDialog(mainPanel);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -879,6 +999,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             }
         }
     }
+
     private class SaveSimulationResultListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
@@ -901,7 +1022,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private class OpenPollutionEnvironmentListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            if (simulationRunner.getRoutingApplication() == null){
+            if (simulationRunner.getRoutingApplication() == null) {
                 showNoConfigurationSelectedError();
                 return;
             }
@@ -911,7 +1032,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
             File file = new File(MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath());
             String basePath = file.getParentFile().getParent();
-            fc.setCurrentDirectory(new File(Paths.get(basePath, "src", "main","java","EnvironmentAPI","Configurations").toUri()));
+            fc.setCurrentDirectory(new File(Paths.get(basePath, "src", "main", "java", "EnvironmentAPI", "Configurations").toUri()));
 
             int returnVal = fc.showOpenDialog(mainPanel);
 
@@ -922,7 +1043,11 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
                 frame.setMinimumSize(new Dimension(300, 300));
                 frame.setVisible(true);
 
-                simulationRunner.loadEnvironmentFromFile(fc.getSelectedFile());
+                try {
+                    simulationRunner.loadEnvironmentFromFile(fc.getSelectedFile());
+                } catch (IllegalStateException e) {
+                    showNoValidFileSelectedError(e.getMessage());
+                }
 
                 frame.dispose();
                 loadMap(false);
@@ -1009,13 +1134,18 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
 
     private void showNoConfigurationSelectedError() {
-        JOptionPane.showMessageDialog(null, "Make sure to have a configuration loaded in before selecting an environment.",
+        JOptionPane.showMessageDialog(null, "Make sure to have a configuration loaded in before selecting/saving/configuring an environment.",
             "Warning: no configuration loaded", JOptionPane.ERROR_MESSAGE);
     }
 
     private void showNoInputProfileSelectedError() {
         JOptionPane.showMessageDialog(null, "Make sure to have an input profile selected before running the simulator.",
             "Warning: no input profile selected", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showNoValidFileSelectedError(String message) {
+        JOptionPane.showMessageDialog(null, message,
+            "Warning: invalid file!", JOptionPane.ERROR_MESSAGE);
     }
 
     private void updateGeneralResultsMote(Mote mote, int run) {
@@ -1067,6 +1197,8 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         saveConfigurationButton.setEnabled(b);
         configureButton.setEnabled(b);
         savePollutionConfigButton.setEnabled(b);
+        configureEnvironmentButton.setEnabled(b);
+        configureSensorsButton.setEnabled(b);
     }
 
     // endregion
@@ -1116,22 +1248,39 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         configurationToolBar.add(configureButton);
         final Spacer spacer1 = new Spacer();
         configurationToolBar.add(spacer1);
+        final JLabel label2 = new JLabel();
+        label2.setText("PollutionEnvironment: ");
+        configurationToolBar.add(label2);
+        openPollutionEnvironmentButton = new JButton();
+        openPollutionEnvironmentButton.setText("Open");
+        configurationToolBar.add(openPollutionEnvironmentButton);
         final JToolBar.Separator toolBar$Separator4 = new JToolBar.Separator();
         configurationToolBar.add(toolBar$Separator4);
+        savePollutionConfigButton = new JButton();
+        savePollutionConfigButton.setText("Save");
+        configurationToolBar.add(savePollutionConfigButton);
+        configureEnvironmentButton = new JButton();
+        configureEnvironmentButton.setText("Configure Sources");
+        configurationToolBar.add(configureEnvironmentButton);
+        configureSensorsButton = new JButton();
+        configureSensorsButton.setText("Configure Sensors");
+        configurationToolBar.add(configureSensorsButton);
+        final Spacer spacer2 = new Spacer();
+        configurationToolBar.add(spacer2);
         helpButton = new JButton();
         helpButton.setText("Help");
         configurationToolBar.add(helpButton);
-        final Spacer spacer2 = new Spacer();
-        configurationToolBar.add(spacer2);
+        final Spacer spacer3 = new Spacer();
+        configurationToolBar.add(spacer3);
         final JToolBar.Separator toolBar$Separator5 = new JToolBar.Separator();
         configurationToolBar.add(toolBar$Separator5);
         aboutButton = new JButton();
         aboutButton.setText("About");
         configurationToolBar.add(aboutButton);
-        final Spacer spacer3 = new Spacer();
-        configurationToolBar.add(spacer3);
+        final Spacer spacer4 = new Spacer();
+        configurationToolBar.add(spacer4);
         mainWindowSplitPane = new JSplitPane();
-        mainWindowSplitPane.setDividerLocation(600);
+        mainWindowSplitPane.setDividerLocation(605);
         mainWindowSplitPane.setOrientation(0);
         mainPanel.add(mainWindowSplitPane, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         mapAndLegendListSplitPane = new JSplitPane();
@@ -1155,28 +1304,28 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         final JToolBar toolBar1 = new JToolBar();
         toolBar1.setFloatable(false);
         mapPanel.add(toolBar1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
-        final JLabel label2 = new JLabel();
-        label2.setText("Map");
-        toolBar1.add(label2);
+        final JLabel label3 = new JLabel();
+        label3.setText("Map");
+        toolBar1.add(label3);
         final JToolBar.Separator toolBar$Separator6 = new JToolBar.Separator();
         toolBar1.add(toolBar$Separator6);
-        final Spacer spacer4 = new Spacer();
-        toolBar1.add(spacer4);
-        final JLabel label3 = new JLabel();
-        label3.setText("Center:");
-        toolBar1.add(label3);
+        final Spacer spacer5 = new Spacer();
+        toolBar1.add(spacer5);
+        final JLabel label4 = new JLabel();
+        label4.setText("Center:");
+        toolBar1.add(label4);
         centerLabel = new JLabel();
         centerLabel.setText("");
         toolBar1.add(centerLabel);
-        final Spacer spacer5 = new Spacer();
-        toolBar1.add(spacer5);
+        final Spacer spacer6 = new Spacer();
+        toolBar1.add(spacer6);
         map = new JPanel();
         map.setLayout(new BorderLayout(0, 0));
         map.setBackground(new Color(-4473925));
         map.setForeground(new Color(-12828863));
         mapPanel.add(map, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(400, 200), null, 0, false));
-        final Spacer spacer6 = new Spacer();
-        mapPanel.add(spacer6, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(-1, 250), null, null, 0, false));
+        final Spacer spacer7 = new Spacer();
+        mapPanel.add(spacer7, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(-1, 250), null, null, 0, false));
         runAndStatisticsPanel = new JPanel();
         runAndStatisticsPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         runAndStatisticsPanel.setMinimumSize(new Dimension(1500, 35));
@@ -1209,9 +1358,9 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         final JToolBar toolBar2 = new JToolBar();
         toolBar2.setFloatable(false);
         panel2.add(toolBar2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
-        final JLabel label4 = new JLabel();
-        label4.setText("Adaptation Goals:");
-        toolBar2.add(label4);
+        final JLabel label5 = new JLabel();
+        label5.setText("Adaptation Goals:");
+        toolBar2.add(label5);
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         panel2.add(panel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -1221,60 +1370,60 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         final JPanel panel5 = new JPanel();
         panel5.setLayout(new GridLayoutManager(1, 5, new Insets(2, 3, 0, 3), -1, -1));
         panel4.add(panel5, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, new Dimension(-1, 36), 0, false));
-        final JLabel label5 = new JLabel();
-        label5.setText("Reliable communication:");
-        panel5.add(label5, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer7 = new Spacer();
-        panel5.add(spacer7, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JLabel label6 = new JLabel();
+        label6.setText("Reliable communication:");
+        panel5.add(label6, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer8 = new Spacer();
+        panel5.add(spacer8, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         relComLabel = new JLabel();
         relComLabel.setText("Interval: [-48,-42]");
         panel5.add(relComLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         editRelComButton = new JButton();
         editRelComButton.setText("Edit");
         panel5.add(editRelComButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label6 = new JLabel();
-        label6.setText("dB");
-        panel5.add(label6, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("dB");
+        panel5.add(label7, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel6 = new JPanel();
         panel6.setLayout(new GridLayoutManager(1, 5, new Insets(2, 3, 0, 3), -1, -1));
         panel4.add(panel6, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(262, 36), new Dimension(-1, 36), 0, false));
-        final JLabel label7 = new JLabel();
-        label7.setText("Energy consumption:");
-        panel6.add(label7, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label8 = new JLabel();
+        label8.setText("Energy consumption:");
+        panel6.add(label8, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         enConLabel = new JLabel();
         enConLabel.setText("Threshold: 100");
         panel6.add(enConLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         editEnConButton = new JButton();
         editEnConButton.setText("Edit");
         panel6.add(editEnConButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer8 = new Spacer();
-        panel6.add(spacer8, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final JLabel label8 = new JLabel();
-        label8.setText("mJ/min");
-        panel6.add(label8, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer9 = new Spacer();
+        panel6.add(spacer9, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JLabel label9 = new JLabel();
+        label9.setText("mJ/min");
+        panel6.add(label9, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel7 = new JPanel();
         panel7.setLayout(new GridLayoutManager(1, 5, new Insets(2, 3, 0, 3), -1, -1));
         panel4.add(panel7, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(262, 36), new Dimension(-1, 36), 0, false));
-        final JLabel label9 = new JLabel();
-        label9.setText("Collision Bound: ");
-        panel7.add(label9, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label10 = new JLabel();
+        label10.setText("Collision Bound: ");
+        panel7.add(label10, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         colBoundLabel = new JLabel();
         colBoundLabel.setText("Threshold: 10");
         panel7.add(colBoundLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         editColBoundButton = new JButton();
         editColBoundButton.setText("Edit");
         panel7.add(editColBoundButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer9 = new Spacer();
-        panel7.add(spacer9, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-        final JLabel label10 = new JLabel();
-        label10.setText("%");
-        panel7.add(label10, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer10 = new Spacer();
+        panel7.add(spacer10, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JLabel label11 = new JLabel();
+        label11.setText("%");
+        panel7.add(label11, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JToolBar toolBar3 = new JToolBar();
         toolBar3.setFloatable(false);
         panel1.add(toolBar3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
-        final JLabel label11 = new JLabel();
-        label11.setText("Input Profile");
-        toolBar3.add(label11);
+        final JLabel label12 = new JLabel();
+        label12.setText("Input Profile");
+        toolBar3.add(label12);
         statisticsPanel = new JPanel();
         statisticsPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         statisticsSplitPane.setRightComponent(statisticsPanel);
@@ -1315,20 +1464,20 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         toolBar4.add(moteCharacteristicsButton);
         final JToolBar.Separator toolBar$Separator8 = new JToolBar.Separator();
         toolBar4.add(toolBar$Separator8);
-        final JLabel label12 = new JLabel();
-        label12.setText("Selected: ");
-        toolBar4.add(label12);
+        final JLabel label13 = new JLabel();
+        label13.setText("Selected: ");
+        toolBar4.add(label13);
         moteCharacteristicsLabel = new JLabel();
         moteCharacteristicsLabel.setText("");
         toolBar4.add(moteCharacteristicsLabel);
-        final JLabel label13 = new JLabel();
-        label13.setText(" ");
-        toolBar4.add(label13);
+        final JLabel label14 = new JLabel();
+        label14.setText(" ");
+        toolBar4.add(label14);
         resultsButton = new JButton();
         resultsButton.setText("Results");
         toolBar4.add(resultsButton);
-        final Spacer spacer10 = new Spacer();
-        toolBar4.add(spacer10);
+        final Spacer spacer11 = new Spacer();
+        toolBar4.add(spacer11);
         final JPanel panel9 = new JPanel();
         panel9.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setRightComponent(panel9);
@@ -1347,14 +1496,14 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         toolBar5.add(regionButton);
         final JToolBar.Separator toolBar$Separator11 = new JToolBar.Separator();
         toolBar5.add(toolBar$Separator11);
-        final JLabel label14 = new JLabel();
-        label14.setText("Selected: ");
-        toolBar5.add(label14);
+        final JLabel label15 = new JLabel();
+        label15.setText("Selected: ");
+        toolBar5.add(label15);
         moteApplicationLabel = new JLabel();
         moteApplicationLabel.setText("");
         toolBar5.add(moteApplicationLabel);
-        final Spacer spacer11 = new Spacer();
-        toolBar5.add(spacer11);
+        final Spacer spacer12 = new Spacer();
+        toolBar5.add(spacer12);
         tabbedPane1 = new JTabbedPane();
         panel9.add(tabbedPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         particulateMatterPanel = new JPanel();
@@ -1380,22 +1529,29 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         resultsPanel.add(toolBar6, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 35), null, 0, false));
         final JToolBar.Separator toolBar$Separator12 = new JToolBar.Separator();
         toolBar6.add(toolBar$Separator12);
-        final JLabel label15 = new JLabel();
-        label15.setText("Experimental results:  ");
-        toolBar6.add(label15);
+        final JLabel label16 = new JLabel();
+        label16.setText("Experimental results:  ");
+        toolBar6.add(label16);
         simulationSaveButton = new JButton();
         simulationSaveButton.setText("Save");
         toolBar6.add(simulationSaveButton);
-        final JLabel label16 = new JLabel();
-        label16.setText("  ");
-        toolBar6.add(label16);
+        final JLabel label17 = new JLabel();
+        label17.setText("  ");
+        toolBar6.add(label17);
         clearButton = new JButton();
         clearButton.setText("Clear");
         toolBar6.add(clearButton);
         final JToolBar.Separator toolBar$Separator13 = new JToolBar.Separator();
         toolBar6.add(toolBar$Separator13);
-        final Spacer spacer12 = new Spacer();
-        toolBar6.add(spacer12);
+        final JLabel label18 = new JLabel();
+        label18.setText("Heatmap view: ");
+        toolBar6.add(label18);
+        environmentChoice = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+        environmentChoice.setModel(defaultComboBoxModel1);
+        toolBar6.add(environmentChoice);
+        final Spacer spacer13 = new Spacer();
+        toolBar6.add(spacer13);
         runPanel = new JPanel();
         runPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         simulationPanel.add(runPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 35), null, 0, false));
@@ -1405,9 +1561,9 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         toolBarAdaptation.setRollover(true);
         toolBarAdaptation.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
         runPanel.add(toolBarAdaptation, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
-        final JLabel label17 = new JLabel();
-        label17.setText("Simulation  ");
-        toolBarAdaptation.add(label17);
+        final JLabel label19 = new JLabel();
+        label19.setText("Simulation  ");
+        toolBarAdaptation.add(label19);
         adaptationComboBox = new JComboBox();
         toolBarAdaptation.add(adaptationComboBox);
         final JToolBar.Separator toolBar$Separator14 = new JToolBar.Separator();
@@ -1423,12 +1579,12 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         totalRunButton = new JButton();
         totalRunButton.setText("Total Run");
         toolBarMultiRun.add(totalRunButton);
-        final JLabel label18 = new JLabel();
-        label18.setText("  ");
-        toolBarMultiRun.add(label18);
-        final JLabel label19 = new JLabel();
-        label19.setText("Progress: ");
-        toolBarMultiRun.add(label19);
+        final JLabel label20 = new JLabel();
+        label20.setText("  ");
+        toolBarMultiRun.add(label20);
+        final JLabel label21 = new JLabel();
+        label21.setText("Progress: ");
+        toolBarMultiRun.add(label21);
         totalRunProgressBar = new JProgressBar();
         toolBarMultiRun.add(totalRunProgressBar);
         final JToolBar.Separator toolBar$Separator16 = new JToolBar.Separator();
@@ -1449,14 +1605,11 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         timedRunButton = new JButton();
         timedRunButton.setText("Timed Run");
         toolBarSingleRun.add(timedRunButton);
-        multipleRunButton= new JButton();
-        multipleRunButton.setText("Multiple Run");
-        toolBarSingleRun.add(multipleRunButton);
         final JToolBar.Separator toolBar$Separator19 = new JToolBar.Separator();
         toolBarSingleRun.add(toolBar$Separator19);
-        final JLabel label20 = new JLabel();
-        label20.setText("Speed:");
-        toolBarSingleRun.add(label20);
+        final JLabel label22 = new JLabel();
+        label22.setText("Speed:");
+        toolBarSingleRun.add(label22);
         speedSlider = new JSlider();
         speedSlider.setMajorTickSpacing(3);
         speedSlider.setMaximum(5);

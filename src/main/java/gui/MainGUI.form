@@ -87,6 +87,18 @@
               <text value="Save"/>
             </properties>
           </component>
+          <component id="8b3f6" class="javax.swing.JButton" binding="configureEnvironmentButton">
+            <constraints/>
+            <properties>
+              <text value="Configure Sources"/>
+            </properties>
+          </component>
+          <component id="70027" class="javax.swing.JButton" binding="configureSensorsButton" default-binding="true">
+            <constraints/>
+            <properties>
+              <text value="Configure Sensors"/>
+            </properties>
+          </component>
           <hspacer id="def34">
             <constraints/>
           </hspacer>
@@ -853,6 +865,18 @@
                             <constraints/>
                             <properties/>
                           </component>
+                          <component id="840ad" class="javax.swing.JLabel">
+                            <constraints/>
+                            <properties>
+                              <text value="Heatmap view: "/>
+                            </properties>
+                          </component>
+                          <component id="d5ca" class="javax.swing.JComboBox" binding="environmentChoice">
+                            <constraints/>
+                            <properties>
+                              <model/>
+                            </properties>
+                          </component>
                           <hspacer id="4122d">
                             <constraints/>
                           </hspacer>
@@ -970,22 +994,22 @@
                                 </properties>
                                 <border type="none"/>
                                 <children>
+                                  <component id="def1f" class="javax.swing.JButton" binding="editButton">
+                                    <constraints/>
+                                    <properties>
+                                      <text value="Edit"/>
+                                    </properties>
+                                  </component>
                                   <component id="9ea6c" class="javax.swing.JButton" binding="singleRunButton" default-binding="true">
                                     <constraints/>
                                     <properties>
                                       <text value="Single Run"/>
                                     </properties>
                                   </component>
-                                  <component id="c37fb" class="javax.swing.JButton" binding="multipleRunButton">
+                                  <component id="9c238" class="javax.swing.JButton" binding="multipleRunButton">
                                     <constraints/>
                                     <properties>
-                                      <text value="Multiple run"/>
-                                    </properties>
-                                  </component>
-                                  <component id="a213e" class="javax.swing.JToolBar$Separator">
-                                    <constraints/>
-                                    <properties>
-                                      <separatorSize width="5" height="10"/>
+                                      <text value="Multiple Run"/>
                                     </properties>
                                   </component>
                                   <component id="f9430" class="javax.swing.JButton" binding="timedRunButton" default-binding="true">
@@ -1007,8 +1031,6 @@
                                   <component id="82ffc" class="javax.swing.JSlider" binding="speedSlider">
                                     <constraints/>
                                     <properties>
-                                      <alignmentX value="0.5"/>
-                                      <autoscrolls value="false"/>
                                       <majorTickSpacing value="3"/>
                                       <maximum value="5"/>
                                       <minimum value="1"/>

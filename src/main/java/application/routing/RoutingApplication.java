@@ -1,5 +1,6 @@
 package application.routing;
 
+import EnvironmentAPI.SensorEnvironment;
 import application.Application;
 import application.routing.heuristic.SimplePollutionHeuristic;
 import be.kuleuven.cs.som.annotate.Model;
@@ -49,6 +50,8 @@ public class RoutingApplication extends Application implements Cloneable {
 
     // Size of the buffer that is used
     private int bufferSize;
+
+    private long beginTime;
 
     private Map<Long, Integer> amountAdaptations;
 
@@ -133,6 +136,7 @@ public class RoutingApplication extends Application implements Cloneable {
 
             }
         }
+        beginTime = 0;
 
 
     }
@@ -142,17 +146,22 @@ public class RoutingApplication extends Application implements Cloneable {
      *
      * @param mote to calculate the adaptations of the path
      */
-    public void calculateRoutingAdaptations(UserMote mote, Environment environment) {
+    public void calculateRoutingAdaptations(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         HashMap<GeoPosition, List<GeoPosition>> changesPath = new HashMap<>();
-        long moteStartTime = 31380000000L;
+        long moteStartTimeInMs = 31380L;
         GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
         while (!(currentPosition == mote.getDestination())) {
             long startTime = System.nanoTime();
+            while (beginTime <= moteStartTimeInMs) {
+                //System.out.println("MoteEui : " + mote.getEUI() + " BeginTime : " + beginTime);
+                sensorEnvironment.getPoll().doStep(beginTime*1000000,sensorEnvironment.getSensors().get(0).getEnvironment());
+                beginTime++;
+            }
             //System.out.println("Time " + moteStartTime);
             GeoPosition endPosition = mote.getDestination();
 
             // Use the routing algorithm to calculate the K best paths for the mote
-            List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph, currentPosition, endPosition, bufferSize, moteStartTime, mote.getMovementSpeed());
+            List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph, currentPosition, endPosition, bufferSize, moteStartTimeInMs/1000, mote.getMovementSpeed());
             putKBestPathsBuffers(mote.getEUI(), routeMote);
             Pair<Double, List<GeoPosition>> bestPath;
             if (bufferKBestPaths.get(mote.getEUI()).size() == bufferSize) {
@@ -177,8 +186,7 @@ public class RoutingApplication extends Application implements Cloneable {
             } else {
                 if (routes.get(mote.getEUI()) == null) {
                     System.out.println("o");
-                    bestPath = this.pathFinder.retrieveKPaths(graph, currentPosition, endPosition, bufferSize, moteStartTime, mote.getMovementSpeed()).get(0);
-                    //System.out.println(bestPath.getRight());
+                    bestPath = this.pathFinder.retrieveKPaths(graph, currentPosition, endPosition, bufferSize, moteStartTimeInMs/1000, mote.getMovementSpeed()).get(0);
                     this.routes.put(mote.getEUI(), bestPath);
                     List<GeoPosition> route = new ArrayList<GeoPosition>(bestPath.getRight());
                     changesPath.put(currentPosition,route);
@@ -205,7 +213,7 @@ public class RoutingApplication extends Application implements Cloneable {
             this.routes.get(mote.getEUI()).getRight().remove(0);
             Double distance = MapHelper.distance(currentPosition,this.routes.get(mote.getEUI()).getRight().get(0));
             //System.out.println("Distance "  + distance);
-            moteStartTime += distance*1000/mote.getMovementSpeed()*1000*1000*1000;
+            moteStartTimeInMs += distance*1000/mote.getMovementSpeed()*1000;
             currentPosition = this.routes.get(mote.getEUI()).getRight().get(0);
         }
         mote.setChangesPath(changesPath);
@@ -514,6 +522,10 @@ public class RoutingApplication extends Application implements Cloneable {
         if (messageType == MessageType.REQUEST_PATH.getCode() || messageType == MessageType.REQUEST_UPDATE_PATH.getCode()) {
             handleRouteRequest(message);
         }
+    }
+
+    public void reset(){
+        beginTime = 0;
     }
 
     /**

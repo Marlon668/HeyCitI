@@ -68,6 +68,7 @@ public class Environment implements Serializable {
      */
     private GlobalClock clock;
 
+
     private GraphStructure graph;
     private MapHelper mapHelper;
 
@@ -228,10 +229,6 @@ public class Environment implements Serializable {
     @Basic
     public void addMote(Mote mote) {
         // TODO check if coordinates are within valid bounds (although... is this really necessary?)
-        //if(mote instanceof UserMote)
-        //{
-        //   System.out.println(((UserMote) mote).isActive());
-        //}
         motes.add(mote);
     }
 
@@ -379,5 +376,16 @@ public class Environment implements Serializable {
     public void removeConnectionFromMotes(long connectionId) {
         motes.forEach(o -> o.shortenPathFromConnection(connectionId));
     }
+
+    public boolean isWithinBounds(GeoPosition position){
+        int x = mapHelper.toMapXCoordinate(position);
+        int y = mapHelper.toMapYCoordinate(position);
+        GeoPosition relativePoint = this.getMapOrigin();
+        return isValidXpos(x) && isValidYpos(y) &&
+            Math.abs(relativePoint.getLatitude()) <= Math.abs(position.getLatitude()) &&
+            Math.abs(relativePoint.getLongitude()) <= Math.abs(position.getLongitude());
+
+    }
 }
+
 

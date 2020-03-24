@@ -50,7 +50,7 @@ public class InputProfile {
     private static final int DEFAULT_SYNCHRONISATION = 0;
 
     /**
-     * The default OF setup first al the changes of the paht of the mote
+     * The default OF setup first al the changes of the path of the mote
      */
     private static final int DEFAULT_SETUP = 0;
 

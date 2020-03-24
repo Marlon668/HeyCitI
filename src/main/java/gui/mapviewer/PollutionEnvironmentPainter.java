@@ -1,6 +1,7 @@
 package gui.mapviewer;
 
-import EnvironmentAPI.PollutionEnvironment;
+import EnvironmentAPI.SensorEnvironment;
+import EnvironmentAPI.util.EnvSettings;
 import gui.util.GUISettings;
 import iot.Environment;
 import org.jxmapviewer.JXMapViewer;
@@ -14,11 +15,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class PollutionEnvironmentPainter extends AbstractPainter<JXMapViewer> {
-    private PollutionEnvironment pollutionEnv;
+    private SensorEnvironment pollutionEnv;
     private Environment environment;
+    private int counter = 0;
 
 
-    public PollutionEnvironmentPainter(Environment environment, PollutionEnvironment pollutionEnv) {
+    public PollutionEnvironmentPainter(Environment environment, SensorEnvironment pollutionEnv) {
         this.setAntialiasing(GUISettings.USE_ANTIALIASING);
         this.setCacheable(true);
 
@@ -62,7 +64,8 @@ public class PollutionEnvironmentPainter extends AbstractPainter<JXMapViewer> {
                     (int) ((i+.5) * maxX / DIVISION),
                     (int) ((j+.5) * maxY / DIVISION));
 
-                float airQuality = (float) pollutionEnv.getDataFromSensors(middle);
+
+                float airQuality = (float) pollutionEnv.getPoll().getDensity(middle, environment,EnvSettings.MAX_POLLUTION_SOURCES_VALUE)/EnvSettings.MAX_POLLUTION_SOURCES_VALUE;
                 g.setColor(this.getColor(airQuality));
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, GUISettings.TRANSPARENCY_POLLUTIONGRID));
                 g.fill(new Rectangle2D.Double(topLeft.getX(), topLeft.getY(),
@@ -80,7 +83,8 @@ public class PollutionEnvironmentPainter extends AbstractPainter<JXMapViewer> {
      * @return A color between green and red representing the air quality.
      */
     private Color getColor(float airQuality) {
-        float[] hsbVals = Color.RGBtoHSB((int) (255 * airQuality), (int) (255 * (1 - airQuality)), 0, null);
+        //return new Color(105,105,105, (int)(255*airQuality));
+        float[] hsbVals = Color.RGBtoHSB((int) (255 * (airQuality)), (int) (255 * (1-airQuality)), 0, null);
         return Color.getHSBColor(hsbVals[0], hsbVals[1], hsbVals[2]);
     }
 }

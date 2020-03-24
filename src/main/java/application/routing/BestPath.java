@@ -1,6 +1,7 @@
 package application.routing;
 
 import EnvironmentAPI.PollutionEnvironment;
+import EnvironmentAPI.SensorEnvironment;
 import application.routing.heuristic.RoutingHeuristic;
 import iot.Environment;
 import iot.networkentity.UserMote;
@@ -23,7 +24,7 @@ public class BestPath{
     // The maximum amount of distance the closest waypoint should be to a given GeoPosition (in km)
     @SuppressWarnings("FieldCanBeLocal")
     private final double DISTANCE_THRESHOLD_POSITIONS = 0.05;
-    private PollutionEnvironment pollutionEnvironment;
+    private SensorEnvironment pollutionEnvironment;
 
 
     private Map<Long,List<Double>> information;
@@ -33,7 +34,7 @@ public class BestPath{
         this.information = information;
     }
 
-    public BestPath(RoutingHeuristic heuristic, PollutionEnvironment pollutionEnvironment) {
+    public BestPath(RoutingHeuristic heuristic, SensorEnvironment pollutionEnvironment) {
         this.pollutionEnvironment = pollutionEnvironment;
 
     }
