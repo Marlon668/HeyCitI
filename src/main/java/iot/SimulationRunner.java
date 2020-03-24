@@ -193,6 +193,7 @@ public class SimulationRunner {
         simulation = new Simulation(pollutionGrid,sensorEnvironment,sensorEnvironment.getPoll(),this);
         inputProfiles = loadInputProfiles();
         bestpathAvailable = false;
+        parameters = new Parameters();
 
         // Loading all the algorithms
         GenericFeedbackLoop noAdaptation = new GenericFeedbackLoop("No Adaptation") {
@@ -376,7 +377,7 @@ public class SimulationRunner {
 
     public void setupSingleRun() {
         this.setupSingleRun(true);
-        if(inputProfiles.get(0).getSetupFirst()==1){
+        if(getParameters().getSetupFirst()==1){
             simulation.initialiseMote();
         }
     }
@@ -394,7 +395,7 @@ public class SimulationRunner {
     }
 
     public void multipleRun(MutableInteger updateFrequency, SimulationUpdateListener listener) {
-        this.amountRuns = simulation.getInputProfile().get().getAmountRuns();
+        this.amountRuns = getParameters().getAmountRuns();
         this.multipleRun = true;
         this.updateFrequency = updateFrequency;
         this.listener = listener;
@@ -428,8 +429,8 @@ public class SimulationRunner {
             String message = "Evaluation of the path \n";
             for(Mote mote : environment.getMotes()){
                 if(mote instanceof UserMote) {
-                    long averageTime = time.get(mote).getLeft()/simulation.getInputProfile().get().getAmountRuns();
-                    long maxTime = time.get(mote).getRight()/simulation.getInputProfile().get().getAmountRuns();
+                    long averageTime = time.get(mote).getLeft()/getParameters().getAmountRuns();
+                    long maxTime = time.get(mote).getRight()/getParameters().getAmountRuns();
                     message += "EUI: " + mote.getEUI() + "  :    " + result.get(mote).getLeft()+ "\n" +
                         " , Amount adaptations: " + result.get(mote).getRight() + " , AverageTimeDecision: " + averageTime +
                         " Max Time" + maxTime + "\n";
@@ -607,6 +608,7 @@ public class SimulationRunner {
         file = new File(file.getParent() + "/inputProfiles/inputProfile.xml");
         updateInputProfilesFile(file);
     }
+
 
     public void updateParametersFile() {
         ParameterWriter.updateParameterFile(parameters,parameterFile);

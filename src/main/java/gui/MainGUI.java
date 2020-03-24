@@ -203,7 +203,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             this.setEnabledRunButtons(false);
             synchronized (simulationRunner) {
                 simulationRunner.setupSingleRun();
-                if(!(simulationRunner.getInputProfiles().get(0).getSetupFirst()==1)) {
+                if(!(simulationRunner.getParameters().getSetupFirst()==1)) {
                     simulationRunner.simulate(simulationSpeed, this);
                 }
                 else{

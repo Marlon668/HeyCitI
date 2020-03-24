@@ -177,7 +177,7 @@ public class Simulation {
     @Basic
     public void setAdaptationAlgorithm(GenericFeedbackLoop approach) {
         this.approach = approach;
-        routingApplication.setBufferSize(inputProfile.getBuffersize());
+        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
     }
 
 
@@ -194,7 +194,7 @@ public class Simulation {
             getApproach().stop();
         }
         this.approach = approach;
-        routingApplication.setBufferSize(inputProfile.getBuffersize());
+        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
 
         getApproach().start();
     }
@@ -348,7 +348,7 @@ public class Simulation {
                                             //routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                                         }
                                     } else {
-                                        if (inputProfile.getSynchronisation() == 0) {
+                                        if (simulationRunner.getParameters().getSynchronisation() == 0) {
                                             List<GeoPosition> path = mote.getPath().getWayPoints();
                                             List<Long> path3 = new ArrayList<>();
                                             mote.getPath().getWayPoints().forEach(
@@ -554,7 +554,7 @@ public class Simulation {
         this.buffer = new HashMap<>();
         this.time = 0;
 
-        routingApplication.setBufferSize(inputProfile.getBuffersize());
+        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
 
         this.wayPointMap = new HashMap<>();
         this.timeMap = new HashMap<>();
