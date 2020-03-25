@@ -377,9 +377,9 @@ public class SimulationRunner {
 
     public void setupSingleRun() {
         this.setupSingleRun(true);
-        if(getParameters().getSetupFirst()==1){
-            simulation.initialiseMote();
-        }
+        //if(getParameters().getSetupFirst()==1){
+        //    simulation.initialiseMote();
+        //}
     }
 
     /**

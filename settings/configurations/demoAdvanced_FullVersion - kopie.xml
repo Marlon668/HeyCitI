@@ -490,27 +490,10 @@
             <userMoteState>true</userMoteState>
             <destination id="1729"/>
         </userMote>
-    </motes>
     <gateways>
-        <gateway>
-            <devEUI>1904226345973984134</devEUI>
-            <location>
-                <xPos>1071</xPos>
-                <yPos>974</yPos>
-            </location>
-            <transmissionPower>14</transmissionPower>
-            <spreadingFactor>12</spreadingFactor>
-        </gateway>
-        <gateway>
-            <devEUI>14606357054910126426</devEUI>
-            <location>
-                <xPos>1494</xPos>
-                <yPos>1985</yPos>
-            </location>
-            <transmissionPower>14</transmissionPower>
-            <spreadingFactor>11</spreadingFactor>
-        </gateway>
+        
     </gateways>
+    </motes>
     <wayPoints>
         <wayPoint id="1">50.87833046636809,4.699573516845703</wayPoint>
         <wayPoint id="2">50.88689994861236,4.706053733825684</wayPoint>

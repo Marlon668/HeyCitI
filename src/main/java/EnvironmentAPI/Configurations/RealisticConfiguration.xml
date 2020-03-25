@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Environment>
+    <Sources>
+        <FunctionSource>
+            <Position>50.848477, 4.678091</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>((55000 * gauss(1175,705) * 2.35
+                + 6000 * gauss(2350,235) * 2.35
+                + 140000 * gauss(5170,1880) * 2.35
+                + 4000 * gauss(3525,705) * 2.35
+                + 10000 * gauss(7520,705) * 2.35)+50 )/3</Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.874350, 4.656507</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>((103000 * gauss(900,940)*2.35
+                + 8000 * gauss(2961,470)*2.35
+                + 150000 * gauss(4700,1410)*2.35
+                + 30000* gauss(2000,800) + 15000* gauss(2100,700)
+                + 11780* gauss(4500,800) + 30000* gauss(5875,1880)*2.35
+                + 30000* gauss(5500,800) + 24000* gauss(7050,940)*2.35
+                + 15000* gauss(7285,470) * 2.35) )/3
+            </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.879128, 4.700221</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>(9000*gauss(470,470)*2.35+
+                9000*gauss(235,470)*2.35+
+                45000*gauss(900,587.5)*2.35+
+                65000 * gauss(2100,700)+
+                + 15780 * gauss(3800,800)
+                + 25000 * gauss(3055,470)*2.35
+                + 79000 * gauss(4935,869.5)*2.35
+                + 19500 * gauss(6110,634.5)*2.35
+                + 13000 * gauss(6345,470)*2.35
+                + 1000 * gauss(6697.5,470)*2.35
+                + 1000 * gauss(6815,470)*2.35
+                + 7000 * gauss(7050,470)*2.35
+                + 7000 * gauss(7050,470)* 2.35 + 15 )/3
+            </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.883671, 4.715371</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>25000 * gauss(500*2.35,300*2.35) * 2.35
+                + 25000 * gauss(2000*2.35,300*2.35) * 2.35
+                + 1200 * gauss(1260*2.35,35*2.35) * 2.35
+                + 1200 * gauss(960*2.35,35*2.35) * 2.35
+                + 1200 * gauss(1540*2.35,35*2.35) * 2.35
+                + 1200 * gauss(2600*2.35,300*2.35) * 2.35
+                + 2000 * gauss(2950*2.35,800*2.35)
+            </Function>
+        </FunctionSource>
+    </Sources>
+    <Sensors>
+        <Sensor>
+            <Position>50.859145, 4.681830</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.867058, 4.701625</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.878831411546244, 4.714336395263672</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.878777255570405, 4.683952331542969</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>5</NoiseRatio>
+        </Sensor>
+    </Sensors>
+</Environment>

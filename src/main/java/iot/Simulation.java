@@ -623,35 +623,17 @@ public class Simulation {
     public void simulateStepRun(PollutionEnvironment Pollenvironment) {
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
-            .filter(mote -> !(mote instanceof UserMote))
-            .map(mote -> { mote.consumePackets(); return mote;}) //DON'T replace with peek because the filtered mote after this line will not do the consume packet
-            .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
-            .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
-                TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
-            .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
-            .forEach(mote -> {
-                timeMap.put(mote, this.getEnvironment().getClock().getTime());
-                if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
-                    this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
-                } else {wayPointMap.put(mote, wayPointMap.get(mote) + 1);}
-            });
-        this.getEnvironment().getMotes().stream()
-            .filter(Mote::isEnabled)
             .filter(mote-> mote instanceof UserMote)
-            .map(mote -> { ((UserMote) mote).changePath(); return mote;}) //DON'T replace with peek because the filtered mote after this line will not do the consume packet
             .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
             .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
                 TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
             .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
             .forEach(mote -> {
-                if(((UserMote) mote).hasChanged() && changed.get(mote) >1){
-                    wayPointMap.put(mote,1);
-                }
                 timeMap.put(mote, this.getEnvironment().getClock().getTime());
                 if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
                     this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                 } else {
-                    changed.put(mote,changed.get(mote)+1);
+                    routingApplication.calculateRoutingAdaptations2((UserMote) mote,environment.get(),sensorEnvironment);
                     wayPointMap.put(mote, wayPointMap.get(mote) + 1);
                 }
             });

@@ -146,6 +146,53 @@ public class RoutingApplication extends Application implements Cloneable {
      *
      * @param mote to calculate the adaptations of the path
      */
+    public void calculateRoutingAdaptations2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
+            GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
+            //System.out.println("Time " + moteStartTime);
+            GeoPosition endPosition = mote.getDestination();
+            // Use the routing algorithm to calculate the K best paths for the mote
+            List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSize);
+            putKBestPathsBuffers(mote.getEUI(), routeMote);
+            Pair<Double, List<GeoPosition>> bestPath;
+            if (bufferKBestPaths.get(mote.getEUI()).size() == bufferSize) {
+                bestPath = takeBestPath(bufferKBestPaths.get(mote.getEUI()));
+                bufferKBestPaths = new HashMap<>();
+                if (bestPath.getRight().size() > 0) {
+                    if (routes.get(mote.getEUI()) != null) {
+                        List<GeoPosition> path = routes.get(mote.getEUI()).getRight();
+                        if (!(bestPath.getRight().equals(path))) {
+                            int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                            getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                        }
+                    }
+                    this.routes.put(mote.getEUI(), bestPath);
+                }
+                else {
+                    bestPath = this.routes.get(mote.getEUI());
+                    this.routes.put(mote.getEUI(), bestPath);
+                }
+            } else {
+                if (routes.get(mote.getEUI()) == null) {
+                    bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                    this.routes.put(mote.getEUI(), bestPath);
+                } else {
+                    bestPath = this.routes.get(mote.getEUI());
+                    if (bestPath.getRight().size() > 1) {
+                        this.routes.put(mote.getEUI(), bestPath);
+                    }
+                }
+            }
+            Path motePath = mote.getPath();
+            motePath.addPosition(bestPath.getRight().get(1));
+            mote.setPath(motePath.getWayPoints());
+            this.routes.get(mote.getEUI()).getRight().remove(0);
+    }
+
+    /**
+     * Handle a route request message by replying with (part of) the route to the requesting device.
+     *
+     * @param mote to calculate the adaptations of the path
+     */
     public void calculateRoutingAdaptations(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         HashMap<GeoPosition, List<GeoPosition>> changesPath = new HashMap<>();
         long moteStartTimeInMs = 31380L;

@@ -475,7 +475,7 @@ public class ChartGenerator {
 
         double SampleLength = 1.0/SAMPLERATE;
 
-        double[][] data = new double[2][(xmax)*SAMPLERATE];
+        double[][] data = new double[2][(xmax)*SAMPLERATE-1];
         int index = 0;
         for(double i = 0; i <= xmax-SampleLength; i += SampleLength){
             double time = chosen.getTimeUnit().convertToNano(i);
