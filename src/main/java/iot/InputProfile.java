@@ -21,21 +21,6 @@ import java.util.Set;
 public class InputProfile {
 
     /**
-     * The default buffer size used by the adaptation algorithm
-     */
-    private static final int DEFAULT_BUFFERSIZE = 1;
-
-    /**
-     * The default alphavalue for the evaluation of the connections
-     */
-    private static final double DEFAULT_ALPHAVALUE = 0.95;
-
-    /**
-     * The default evaluationvalue for evaluate two paths
-     */
-    private static final double DEFAULT_BETTER_PATH = 0.95;
-
-    /**
      * The default duration of the simulation.
      */
     private static final long DEFAULT_SIMULATION_DURATION = 2;
@@ -43,21 +28,6 @@ public class InputProfile {
      * The default unit of measure of the duration.
      */
     private static final ChronoUnit DEFAULT_TIME_UNIT = ChronoUnit.HOURS;
-
-    /**
-     * The default OF redoing simulation to get result without synchronisation issue
-     */
-    private static final int DEFAULT_SYNCHRONISATION = 0;
-
-    /**
-     * The default OF setup first al the changes of the path of the mote
-     */
-    private static final int DEFAULT_SETUP = 0;
-
-    /**
-     * The default OF redoing simulation to get result without synchronisation issue
-     */
-    private static final int DEFAULT_AMOUNTRUNS = 1;
 
     /**
      * The name of the input profile.
@@ -103,90 +73,6 @@ public class InputProfile {
     private Document xmlSource;
 
     /**
-     * buffer size used by the adaptation algorithm
-     */
-    private int buffersize;
-
-    /**
-     * Amount of runs
-     */
-    private int amountRuns;
-
-    /**
-     * Boolean to decide if we must redo the simulation to get result without synchronisation issue
-     * 0 = false
-     * 1 = true
-     */
-    private int synchronisation;
-
-    /**
-     * Boolean to decide if we must calculate first all the changes of the path of the mote
-     * 0 = false
-     * 1 = true
-     */
-    private int setupFirst;
-
-    /**
-     * alphavalue used to evaluate the value of a connection
-     */
-    private double alphavalue;
-
-    /**
-     * betterpath value used to compare two paths
-     */
-    private double betterpath;
-
-    /**
-     * @return synchronisation: boolean to decide if we must redo the simulation
-     */
-    public int getSynchronisation(){
-        return this.synchronisation;
-    }
-
-    /**
-     * Set the synchronisation boolean: boolean to decide if we must redo the simulation
-     * @param synchronisation = Boolean to decide if we must redo the simulation
-     *         0 = false
-     *         1 = true
-     */
-    public void setSynchronisation(int synchronisation){
-        this.synchronisation = synchronisation;
-    }
-
-    /**
-     * @return setupFirst boolean to decide if we must first calculate all the changes of the path
-     */
-    public int getSetupFirst(){
-        return this.setupFirst;
-    }
-
-    /**
-     * Set the setupFirst boolean: boolean to decide if we must calculate first all the changes of the path of the mote
-     * @param setupFirst= Boolean to decide if we must calculate first all the changes of the path of the mote
-     *         0 = false
-     *         1 = true
-     */
-    public void setSetupFirst(int setupFirst){
-        this.setupFirst = setupFirst;
-    }
-
-    /**
-     * sets the amount of runs
-     * @param amountRuns: amount of runs
-     */
-
-    public void setAmountRuns(int amountRuns){
-        this.amountRuns = amountRuns;
-    }
-
-    /**
-     * @return amountRuns : set the amount of runs
-     */
-    public int getAmountRuns(){
-        return this.amountRuns;
-    }
-
-    /**
      * Generates InputProfile with a given qualityOfServiceProfile, numberOfRuns, probabilitiesForMotes, probabilitiesForGateways,
      * regionProbabilities, xmlSource and gui.
      * @param qualityOfServiceProfile The quality of service profile.
@@ -202,7 +88,7 @@ public class InputProfile {
                         Map<Integer, Double> probabilitiesForGateways, Map<Integer, Double> regionProbabilities,
                         Element xmlSource) {
         this(name, qualityOfServiceProfile, numberOfRuns, probabilitiesForMotes, probabilitiesForGateways,
-            regionProbabilities, xmlSource, DEFAULT_SIMULATION_DURATION, DEFAULT_TIME_UNIT,DEFAULT_BUFFERSIZE,DEFAULT_ALPHAVALUE,DEFAULT_BETTER_PATH,DEFAULT_SYNCHRONISATION,DEFAULT_AMOUNTRUNS,DEFAULT_SETUP);
+            regionProbabilities, xmlSource, DEFAULT_SIMULATION_DURATION, DEFAULT_TIME_UNIT);
     }
 
 
@@ -217,30 +103,18 @@ public class InputProfile {
      * @param xmlSource The source of the InputProfile.
      * @param simulationDuration The duration of the simulation.
      * @param timeUnit The unit of measure of the duration.
-     * @param buffersize The buffer size used by the adaptation algorithm
-     * @param alphavalue The alphavalue used to evaluate each connection
-     * @param betterpath Value used to compare two paths
-     * @param synchronisation boolean to decide wether or not we must redo the simulation when a simulation error has occurred
-     * @param amountRuns the amount of runs of simulation
-     * @param setupFirst boolean to decide if we must calculate first the changes of the path of the mote
      */
     public InputProfile(String name, QualityOfService qualityOfServiceProfile,
                         int numberOfRuns,
                         Map<Integer, Double> probabilitiesForMotes,
                         Map<Integer, Double> probabilitiesForGateways, Map<Integer, Double> regionProbabilities,
-                        Element xmlSource, long simulationDuration, ChronoUnit timeUnit,int buffersize,double alphavalue,double betterpath,int synchronisation,int amountRuns,int setupFirst) {
+                        Element xmlSource, long simulationDuration, ChronoUnit timeUnit) {
         this.name = name;
         this.qualityOfServiceProfile = qualityOfServiceProfile;
         this.numberOfRuns =numberOfRuns;
         this.probabilitiesForMotes = probabilitiesForMotes;
         this.regionProbabilities = regionProbabilities;
         this.probabilitiesForGateways = probabilitiesForGateways;
-        this.buffersize = buffersize;
-        this.alphavalue = alphavalue;
-        this.betterpath = betterpath;
-        this.synchronisation = synchronisation;
-        this.amountRuns = amountRuns;
-        this.setupFirst = setupFirst;
         Node node = xmlSource;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -273,60 +147,6 @@ public class InputProfile {
     public void setQualityOfServiceProfile(QualityOfService qualityOfServiceProfile) {
         this.qualityOfServiceProfile = qualityOfServiceProfile;
         updateFile();
-    }
-
-    /**
-     * returns the buffersize
-     * @return buffersize
-     */
-    public int getBuffersize()
-    {
-        return buffersize;
-    }
-
-    /**
-     * Sets the buffersize
-     * @param bufferSize The buffersize to set for the adaptationalgorithm
-     */
-    public void setBufferSize(int bufferSize)
-    {
-        this.buffersize = bufferSize;
-    }
-
-    /**
-     * returns the alpha value
-     * @return alphavalue used to evaluate connections in the adaptation algorithm
-     */
-    public double getAlphavalue()
-    {
-        return alphavalue;
-    }
-
-    /**
-     * sets the alpha value
-     * @param alphavalue The alphavalue to set for the adaptation algorithm
-     */
-    public void setAlphavalue(double alphavalue)
-    {
-        this.alphavalue = alphavalue;
-    }
-
-    /**
-     * returns the better path value
-     * @return better path value to compare two paths in the adaptation algorithm
-     */
-    public double getBetterpath()
-    {
-        return betterpath;
-    }
-
-    /**
-     * returns the better path value
-     * @param betterpath value to compare two paths in the adaptation algorithm
-     */
-    public void setBetterpath(double betterpath)
-    {
-        this.betterpath = betterpath;
     }
 
     /**

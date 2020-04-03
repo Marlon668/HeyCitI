@@ -41,23 +41,24 @@ public class BestPath{
 
 
 
+
+
+
     public Pair<Double,List<GeoPosition>>  retrievePath(Environment environment, UserMote mote) {
         GraphStructure graph = environment.getGraph();
-        GeoPosition begin = environment.getMapHelper().toGeoPosition(mote.getPosInt());
+        GeoPosition begin = environment.getMapHelper().toGeoPosition(mote.getOriginalPosInt());
         GeoPosition end = mote.getDestination();
         double veloctiy = mote.getMovementSpeed();
         long beginWaypointId = graph.getClosestWayPointWithinRange(begin, DISTANCE_THRESHOLD_POSITIONS)
             .orElseThrow(() -> new IllegalStateException("The mote position retrieved from the message is not located at a waypoint."));
         long endWaypointId = graph.getClosestWayPointWithinRange(end, DISTANCE_THRESHOLD_POSITIONS)
             .orElseThrow(() -> new IllegalStateException("The destination position retrieved from the message is not located at a waypoint."));
-
-
         PriorityQueue<FringeEntry> fringe = new PriorityQueue<>();
         // Initialize the fringe by adding the first outgoing connections
         graph.getConnections().entrySet().stream()
             .filter(entry -> entry.getValue().getFrom() == beginWaypointId)
             .forEach(entry -> {
-                Pair<Double, Integer> value = calculateCostConnection(graph,0,veloctiy,entry.getKey());
+                Pair<Double, Long> value = calculateCostConnection(graph,31820,veloctiy,entry.getKey());
                 fringe.add(new FringeEntry(
                     List.of(entry.getKey()),value.getRight(),value.getLeft()));
             });
@@ -80,11 +81,8 @@ public class BestPath{
                 .forEach(connId -> {
                     List<Long> extendedPath = new ArrayList<>(current.connections);
                     extendedPath.add(connId);
-                    Pair<Double, Integer> value = calculateCostConnection(graph,(int)current.time,veloctiy,connId);
-
-                    double newHeuristicValue = current.heuristicValue
-                        + value.getLeft();
-
+                    Pair<Double, Long> value = calculateCostConnection(graph,current.time,veloctiy,connId);
+                    double newHeuristicValue = current.heuristicValue + value.getLeft();
                     fringe.add(new FringeEntry(extendedPath,value.getRight(), newHeuristicValue));
                 });
         }
@@ -124,19 +122,16 @@ public class BestPath{
         return points;
     }
 
-    private Pair<Double, Integer> calculateCostConnection(GraphStructure graph, int time, double velocity, Long connectionId)
+    private Pair<Double, Long> calculateCostConnection(GraphStructure graph, long time, double velocity, Long connectionId)
     {
         Connection connection = graph.getConnection(connectionId);
-        //System.out.println("Values: " + values.get(0));
         GeoPosition begin = graph.getWayPoint(connection.getFrom());
         GeoPosition end = graph.getWayPoint(connection.getTo());
         double distance = MapHelper.distance(begin,end)*1000;
         int period = 0;
-        int startTime = time;
-        int endTime = (int)(distance/velocity) + startTime;
-        double airValue = pollutionEnvironment.getDataBetweenPointsFromTime(begin,end,startTime,endTime,velocity,0.1);
-        //System.out.println(" Value/period: " + value/period);
-        return new Pair<Double, Integer>(airValue*distance,endTime);
+        long endTime = (long)(distance/velocity)*1000 + time;
+        double airValue = pollutionEnvironment.getDataBetweenPointsFromTime(begin,end, time,endTime,velocity,0.1);
+        return new Pair<Double, Long>(airValue*distance/1000,endTime);
     }
 
 

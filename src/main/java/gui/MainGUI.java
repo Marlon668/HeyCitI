@@ -203,11 +203,19 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             this.setEnabledRunButtons(false);
             synchronized (simulationRunner) {
                 simulationRunner.setupSingleRun();
-                if(!(simulationRunner.getParameters().getSetupFirst()==1)) {
-                    simulationRunner.simulate(simulationSpeed, this);
+                if (simulationRunner.getSimulation().getApproach()!= null && simulationRunner.getSimulation().getApproach().getName() == "Air Quality") {
+                    if (!(simulationRunner.getParameters().getSetupFirst() == 1)) {
+                        if (!(simulationRunner.getParameters().getSetupFirst() == 2)) {
+                            simulationRunner.simulate(simulationSpeed, this);
+                        } else {
+                            simulationRunner.simulateCalculatedRun2(simulationSpeed, this);
+                        }
+                    } else {
+                        simulationRunner.simulateCalculatedRun(simulationSpeed, this);
+                    }
                 }
                 else{
-                    simulationRunner.simulateCalculatedRun(simulationSpeed,this);
+                    simulationRunner.simulate(simulationSpeed, this);
                 }
             }
             this.setConfigurationButtons(false);
@@ -819,7 +827,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (simulationRunner.getRoutingApplication() == null) {
+            if (simulationRunner.getEnvironment() == null) {
                 showNoConfigurationSelectedError();
                 return;
             }
@@ -845,7 +853,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (simulationRunner.getRoutingApplication() == null) {
+            if (simulationRunner.getEnvironment() == null) {
                 showNoConfigurationSelectedError();
                 return;
             }
@@ -980,7 +988,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private class SavePollutionConfigurationListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            if (simulationRunner.getRoutingApplication() == null) {
+            if (simulationRunner.getEnvironment() == null) {
                 showNoConfigurationSelectedError();
                 return;
             }
@@ -1022,7 +1030,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private class OpenPollutionEnvironmentListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            if (simulationRunner.getRoutingApplication() == null) {
+            if (simulationRunner.getEnvironment() == null) {
                 showNoConfigurationSelectedError();
                 return;
             }

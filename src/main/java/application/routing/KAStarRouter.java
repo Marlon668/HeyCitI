@@ -65,7 +65,7 @@ public class KAStarRouter implements PathFinder {
         graph.getConnections().entrySet().stream()
             .filter(entry -> entry.getValue().getFrom() == beginWaypointId || entry.getValue().getTo() == beginWaypointId)
             .forEach(entry -> {
-                double accumulatedCost = this.heuristic.calculateAccumulatedCost(new HeuristicEntry(graph, entry.getValue(), end),startTime,velocity);
+                double accumulatedCost = this.heuristic.calculateAccumulatedCost(new HeuristicEntry(graph, entry.getValue(), end),startTime);
                 //double distanceToDestination = MapHelper.distance(graph.getWayPoint(entry.getValue().getTo()), end);
                 fringe.add(new FringeEntry(
                     List.of(entry.getKey()),
@@ -128,7 +128,7 @@ public class KAStarRouter implements PathFinder {
                             }
                             extendedPath.add(connId);
 
-                            double accumulatedCost = current.accumulatedCost + this.heuristic.calculateAccumulatedCost(new HeuristicEntry(graph, graph.getConnection(connId), end),startTime,velocity);
+                            double accumulatedCost = current.accumulatedCost + this.heuristic.calculateAccumulatedCost(new HeuristicEntry(graph, graph.getConnection(connId), end),startTime);
                             //double distanceToDestination = MapHelper.distance(graph.getWayPoint((graph.getConnection(connId).getTo())), end);
                             double newHeuristicValue = accumulatedCost; //+ distanceToDestination;
 

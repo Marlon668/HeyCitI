@@ -28,7 +28,7 @@ public interface RoutingHeuristic {
 
     double calculateCostBetweenTwoNeighbours(GeoPosition begin, GeoPosition end);
 
-    double calculateAccumulatedCost(HeuristicEntry entry,long startTime,double velocity);
+    double calculateAccumulatedCost(HeuristicEntry entry,long startTime);
 
     /**
      * Data class used to store data to calculate a heuristic value associated with that data.

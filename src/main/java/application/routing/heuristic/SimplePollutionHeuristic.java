@@ -39,11 +39,11 @@ public class SimplePollutionHeuristic implements RoutingHeuristic {
     }
 
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime,double velocity) {
+    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime) {
         GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
         GeoPosition end = entry.graph.getWayPoint(entry.connection.getTo());
 
-        double pollutionValue = this.env.getDataBetweenPointsFromTime(begin,end,startTime,velocity,0.1);
+        double pollutionValue = this.env.getDataBetweenPointsFromTime(begin,end,startTime,0.1);
 
 
         //System.out.println((0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350) );

@@ -20,9 +20,11 @@ public abstract class Application {
      * An MQTT client used to communicate with the {@link NetworkServer}.
      */
     protected MqttClientBasicApi mqttClient;
+    protected boolean active;
 
 
     protected Application(List<String> topics) {
+        active = true;
         this.mqttClient = MQTTClientFactory.getSingletonInstance();
         topics.forEach(t -> this.mqttClient.subscribe(this, t, TransmissionWrapper.class, this::consumePackets));
     }
@@ -58,5 +60,7 @@ public abstract class Application {
     /**
      * Destructor which can be used to properly destruct applications.
      */
-    public void destruct() {}
+    public void destruct() {
+        active = false;
+    }
 }

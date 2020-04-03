@@ -3,21 +3,11 @@ package gui;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
-import iot.Environment;
-import iot.InputProfile;
 import iot.Parameters;
 import iot.SimulationRunner;
-import iot.networkentity.Mote;
 
 import javax.swing.*;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
-import java.io.StringWriter;
-import java.time.temporal.ChronoUnit;
 
 
 public class editParameters {
@@ -27,11 +17,15 @@ public class editParameters {
     private JPanel mainPanel;
     private JButton classSaveButton;
     private JButton updateMoteButton;
-    private JSpinner bufferProbSpinner;
+    private JSpinner bufferProbHeightSpinner;
     private JSpinner pathProbSpinner;
     private JSpinner synchronisationSpinner;
     private JSpinner runs;
     private JSpinner calculateFirstSpinner;
+    private JSpinner removeConn;
+    private JLabel removeVisitedConnectionsLabel;
+    private JSpinner analysingMethod;
+    private JSpinner bufferProbWidthSpinner;
 
     public editParameters(Parameters parameters, SimulationRunner simulationRunner) {
         this.parameters = parameters;
@@ -41,32 +35,39 @@ public class editParameters {
 
         classSaveButton.addActionListener(e -> {
             parameters.setBetterpath((Double) pathProbSpinner.getValue());
-            parameters.setBufferSize((Integer) bufferProbSpinner.getValue());
-            parameters.setSynchronisation((Integer) calculateFirstSpinner.getValue());
+            parameters.setBufferSizeHeight((Integer) bufferProbHeightSpinner.getValue());
+            parameters.setBuffersizeWidth((Integer) bufferProbWidthSpinner.getValue());
+            parameters.setSynchronisation((Integer) synchronisationSpinner.getValue());
             parameters.setAmountRuns((Integer) runs.getValue());
             parameters.setSetupFirst((Integer) calculateFirstSpinner.getValue());
+            parameters.setRemoveConn((Integer) removeConn.getValue());
+            parameters.setAnalysingMethod((Integer) analysingMethod.getValue());
             refresh();
             parameters.updateFile(simulationRunner.getParameterFile());
         });
 
         updateMoteButton.addActionListener(e -> {
             parameters.setBetterpath((Double) pathProbSpinner.getValue());
-            parameters.setBufferSize((Integer) bufferProbSpinner.getValue());
-            parameters.setSynchronisation((Integer) calculateFirstSpinner.getValue());
+            parameters.setBufferSizeHeight((Integer) bufferProbHeightSpinner.getValue());
+            parameters.setBuffersizeWidth((Integer) bufferProbWidthSpinner.getValue());
+            parameters.setSynchronisation((Integer) synchronisationSpinner.getValue());
             parameters.setAmountRuns((Integer) runs.getValue());
             parameters.setSetupFirst((Integer) calculateFirstSpinner.getValue());
+            parameters.setRemoveConn((Integer) removeConn.getValue());
+            parameters.setAnalysingMethod((Integer) analysingMethod.getValue());
             refresh();
         });
 
     }
-
-
     private void refresh() {
-        bufferProbSpinner.setModel(new SpinnerNumberModel(parameters.getBuffersize(), 1, Integer.MAX_VALUE, 1));
+        bufferProbHeightSpinner.setModel(new SpinnerNumberModel(parameters.getBuffersizeHeight(), 1, Integer.MAX_VALUE, 1));
+        bufferProbWidthSpinner.setModel(new SpinnerNumberModel(parameters.getBuffersizeWidth(), 1, Integer.MAX_VALUE, 1));
         synchronisationSpinner.setModel(new SpinnerNumberModel(parameters.getSynchronisation(),0,1,1));
-        calculateFirstSpinner.setModel(new SpinnerNumberModel(parameters.getSetupFirst(),0,1,1));
+        calculateFirstSpinner.setModel(new SpinnerNumberModel(parameters.getSetupFirst(),0,2,1));
         runs.setModel(new SpinnerNumberModel(parameters.getAmountRuns(),1,Integer.MAX_VALUE,1));
-        pathProbSpinner.setModel(new SpinnerNumberModel(parameters.getBetterpath(), 0, 1, 0.01));
+        pathProbSpinner.setModel(new SpinnerNumberModel(parameters.getBetterpath(), 0.001, 1, 0.001));
+        removeConn.setModel(new SpinnerNumberModel(parameters.getRemoveConn(), 0, 1, 1));
+        analysingMethod.setModel(new SpinnerNumberModel(parameters.getAnalysingMethod(), 0, 2, 1));
     }
 
     public JPanel getMainPanel() {

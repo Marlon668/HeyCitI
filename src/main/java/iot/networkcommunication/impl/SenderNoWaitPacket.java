@@ -20,7 +20,7 @@ public class SenderNoWaitPacket implements Sender {
 
     private RegionalParameter regionalParameter;
     private double transmissionPower;
-    private HashMap<Long,Boolean> isTransmitting;
+    private HashMap<Long, Boolean> isTransmitting;
     private final NetworkEntity sender;
     private final Environment env;
     /**
@@ -40,33 +40,33 @@ public class SenderNoWaitPacket implements Sender {
     public Optional<LoraTransmission> send(@NotNull LoraWanPacket packet, @NotNull Set<Receiver> receivers) {
         long receiver = packet.getReceiverEUI();
         if (!isTransmitting(receiver)) {
-            var payloadSize = packet.getPayload().length + packet.getFrameHeader().getFOpts().length;
-            if (regionalParameter.getMaximumPayloadSize() < payloadSize) {
-                throw new IllegalArgumentException("Payload size greater then the max size. Payload size: " + payloadSize + ", " +
-                    "but max size allowed with this regional parameter is: " + regionalParameter.getMaximumPayloadSize());
-            }
-            var timeOnAir = computeTimeOnAir(packet)/2;
-            var stream = receivers.stream()
-                .map(r -> new Pair<>(r,
-                    new LoraTransmission(sender.getEUI(), r.getID(), sender.getPosInt(), moveTo(r.getReceiverPositionAsInt(), transmissionPower),
-                        regionalParameter, timeOnAir, env.getClock().getTime(), packet)))
-                .filter(p -> packetStrengthHighEnough(p.getRight().getTransmissionPower()));
-
-            var filteredSet = stream.collect(Collectors.toSet());
-
-            var ret = filteredSet.stream()
-                .findFirst()
-                .map(Pair::getRight);
-            filteredSet.forEach(p -> p.getLeft().receive(p.getRight()));
-
-            isTransmitting.put(receiver,true);
-            var clock = env.getClock();
-            clock.addTriggerOneShot(clock.getTime().plusNanos((long) TimeHelper.miliToNano(timeOnAir)),
-                () -> isTransmitting.put(receiver,false));
-            return ret;
-        } else {
-            throw new IllegalStateException("impossible send two packet at the same time to the same device");
+        var payloadSize = packet.getPayload().length + packet.getFrameHeader().getFOpts().length;
+        if (regionalParameter.getMaximumPayloadSize() < payloadSize) {
+            throw new IllegalArgumentException("Payload size greater then the max size. Payload size: " + payloadSize + ", " +
+                "but max size allowed with this regional parameter is: " + regionalParameter.getMaximumPayloadSize());
         }
+        var timeOnAir = computeTimeOnAir(packet)/2;
+        var stream = receivers.stream()
+            .map(r -> new Pair<>(r,
+                new LoraTransmission(sender.getEUI(), r.getID(), sender.getPosInt(), moveTo(r.getReceiverPositionAsInt(), transmissionPower),
+                    regionalParameter, timeOnAir, env.getClock().getTime(), packet)))
+            .filter(p -> packetStrengthHighEnough(p.getRight().getTransmissionPower()));
+
+        var filteredSet = stream.collect(Collectors.toSet());
+
+        var ret = filteredSet.stream()
+            .findFirst()
+            .map(Pair::getRight);
+        filteredSet.forEach(p -> p.getLeft().receive(p.getRight()));
+
+        isTransmitting.put(receiver, true);
+        var clock = env.getClock();
+        clock.addTriggerOneShot(clock.getTime().plusNanos((long) TimeHelper.miliToNano(timeOnAir)),
+            () -> isTransmitting.put(receiver, false));
+        return ret;
+    } else {
+       throw new IllegalStateException("impossible send two packet at the same time to the same device");
+    }
     }
 
     /**

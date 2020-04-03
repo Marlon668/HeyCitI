@@ -26,12 +26,15 @@ public class ParameterReader {
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
             Element parameterElement = doc.getDocumentElement();
             var adaptationParameters = parameterElement.getElementsByTagName("adaptationParameters");
-            int bufferSize  = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "bufferSize"));
+            int bufferSizeHeight  = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "bufferSizeHeight"));
+            int bufferSizeWidth  = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "bufferSizeWidth"));
             double evaluationValue = Double.parseDouble(XMLHelper.readChild(parameterElement, "evaluationValue"));
             int synchronisedIssue  = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "synchronisedIssue"));
             int amountRuns = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "amountRuns"));
             int setupFirst = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "setupFirst"));
-            parameters = new Parameters(parameterElement,bufferSize,evaluationValue,synchronisedIssue,amountRuns,setupFirst);
+            int removeConn = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "removeConnections"));
+            int analysingMethod = (int) Double.parseDouble(XMLHelper.readChild(parameterElement, "analysingMethod"));
+            parameters = new Parameters(parameterElement,bufferSizeHeight,bufferSizeWidth,evaluationValue,synchronisedIssue,amountRuns,setupFirst,removeConn,analysingMethod);
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }

@@ -3,12 +3,9 @@ package iot;
 import EnvironmentAPI.PollutionEnvironment;
 import EnvironmentAPI.SensorEnvironment;
 import application.pollution.PollutionGrid;
-import application.pollution.PollutionMonitor;
-import application.routing.KAStarRouter;
 import application.routing.RouteEvaluator;
 import application.routing.RoutingApplication;
-import application.routing.heuristic.DistanceHeuristic;
-import application.routing.heuristic.SimplePollutionHeuristic;
+import application.routing.RoutingApplication1;
 import be.kuleuven.cs.som.annotate.Basic;
 import datagenerator.SensorDataGenerator;
 import iot.networkentity.Gateway;
@@ -17,12 +14,9 @@ import iot.networkentity.MoteSensor;
 import iot.networkentity.UserMote;
 import org.jxmapviewer.viewer.GeoPosition;
 import selfadaptation.feedbackloop.GenericFeedbackLoop;
-import selfadaptation.instrumentation.MoteEffector;
 import util.Pair;
-import util.Path;
 import util.TimeHelper;
 
-import javax.sound.midi.SysexMessage;
 import javax.swing.*;
 import java.lang.ref.WeakReference;
 import java.time.LocalTime;
@@ -130,7 +124,14 @@ public class Simulation {
     @Basic
     public void setRoutingApplication(RoutingApplication routingApplication)
     {
+        if(this.routingApplication!=null){
+            this.routingApplication.destruct();
+            //simulationRunner.networkServer.reconnect();
+        }
         this.routingApplication = routingApplication;
+        routingApplication.setBufferSizeHeight(simulationRunner.getParameters().getBuffersizeHeight());
+        routingApplication.setBufferSizeWidth(simulationRunner.getParameters().getBuffersizeWidth());
+        //simulationRunner.networkServer.reconnect();
     }
 
     @Basic
@@ -177,7 +178,7 @@ public class Simulation {
     @Basic
     public void setAdaptationAlgorithm(GenericFeedbackLoop approach) {
         this.approach = approach;
-        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
+
     }
 
 
@@ -194,8 +195,6 @@ public class Simulation {
             getApproach().stop();
         }
         this.approach = approach;
-        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
-
         getApproach().start();
     }
     // endregion
@@ -231,35 +230,17 @@ public class Simulation {
 
     public void initialiseMote(){
         changed = new HashMap<>();
-        for(Mote mote : environment.get().getMotes()){
-            if(mote instanceof UserMote){
-                simulateIdealSituation((UserMote) mote);
-            }
-            changed.put(mote,0);
-        }
-    }
-
-
-
-    public void simulateIdealSituation (UserMote mote) {
-        time = 0;
-        routingApplication.calculateRoutingAdaptations(mote, Objects.requireNonNull(environment.get()),sensorEnvironment);
-
+        routingApplication.calculateRoutingAdaptations(Objects.requireNonNull(environment.get()),sensorEnvironment);
         routingApplication.reset();
         pollutionEnvironment.clear();
+        for(Mote mote : environment.get().getMotes()){
+            if(mote instanceof UserMote){
+                changed.put(mote,0);
+                ((UserMote) mote).changePath();
+            }
+        }
 
-        System.out.println("size : " + mote.getChangesPath().size() );
-        mote.getChangesPath().entrySet().stream()
-            .forEach(entry -> {
-                List<Long> wayPoints = new ArrayList<>();
-                for(GeoPosition wayPoint : entry.getValue()){
-                    long id = environment.get().getGraph().getClosestWayPoint(wayPoint);
-                    wayPoints.add(id);
-                }
-                System.out.println("WayPoint : " + environment.get().getGraph().getClosestWayPoint(entry.getKey())+ " /n changedPath : "  + wayPoints);
-            });
     }
-
 
     /**
      * Simulate a single step in the simulator.
@@ -290,19 +271,27 @@ public class Simulation {
                         else{
                             this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         }
-
-
-                    } else {
+                }
+                else {
                         int index = wayPointMap.get(mote);
-                        if(!(mote instanceof UserMote) || getApproach().getName() != "Air Quality")
+                        if(!(mote instanceof UserMote) ||(getApproach() == null || !getApproach().getName().equals("Air Quality")))
                         {
-                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                            if(simulationRunner.getParameters().getRemoveConn()==1 && mote.getPath().getWayPoints().size()==3) {
+                                mote.getPath().getWayPoints().remove(0);
+                            }
+                            else{
+                                wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                            }
                         }
 
                         else {
-
                             if(mote.getPath().getWayPoints().size() == wayPointMap.get(mote)+2 && !this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote)+1)).equals(mote.getPosInt())) {
-                                wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                if(simulationRunner.getParameters().getRemoveConn()==1 && mote.getPath().getWayPoints().size()==3) {
+                                    mote.getPath().getWayPoints().remove(0);
+                                }
+                                else{
+                                    wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                }
                                 //this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                                 //routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                             }
@@ -331,7 +320,12 @@ public class Simulation {
                                             System.out.println("Position : " + environment.get().getGraph().getClosestWayPoint(environment.get().getMapHelper().toGeoPosition(mote.getPosInt())));
                                             System.out.println("Position : " + environment.get().getGraph().getClosestWayPoint(routingApplication.getRoute(mote).get(indexPath)));
                                             path.add(routingApplication.getRoute(mote).get(indexPath));
-                                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                            if(simulationRunner.getParameters().getRemoveConn()==1 && mote.getPath().getWayPoints().size()==3) {
+                                                mote.getPath().getWayPoints().remove(0);
+                                            }
+                                            else{
+                                                wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                            }
                                             System.out.println("Index : " + indexPath);
                                             List<Long> path2 = new ArrayList<>();
                                             mote.getPath().getWayPoints().forEach(
@@ -368,7 +362,12 @@ public class Simulation {
                                             System.out.println("Position : " + environment.get().getGraph().getClosestWayPoint(environment.get().getMapHelper().toGeoPosition(mote.getPosInt())));
                                             System.out.println("Position : " + environment.get().getGraph().getClosestWayPoint(routingApplication.getRoute(mote).get(indexPath)));
                                             path.add(routingApplication.getRoute(mote).get(indexPath));
-                                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                            if(simulationRunner.getParameters().getRemoveConn()==1 && mote.getPath().getWayPoints().size()==3) {
+                                                mote.getPath().getWayPoints().remove(0);
+                                            }
+                                            else{
+                                                wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                                            }
                                             System.out.println("Index : " + indexPath);
                                             List<Long> path2 = new ArrayList<>();
                                             mote.getPath().getWayPoints().forEach(
@@ -379,10 +378,6 @@ public class Simulation {
                                             );
                                             System.out.println("Eui" + mote.getEUI() + " : " + path2);
                                             System.out.println("Waypoint : " + environment.get().getGraph().getClosestWayPoint(mote.getPath().getWayPoints().get(wayPointMap.get(mote))));
-                                            //this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
-
-                                            //routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
-                                            //synhronisedError.put(mote, true);
 
                                         } else {
                                             if (environment.get().getGraph().getClosestWayPoint(((UserMote) mote).getDestination()) == (environment.get().getGraph().getClosestWayPoint(environment.get().getMapHelper().toGeoPosition(mote.getPosInt())))) {
@@ -392,15 +387,12 @@ public class Simulation {
                                             }
 
                                         }
-                                       // }
+                                    //}
                                     }
                                 }
 
                                     else {
-                                        // There is a fault in the setup => redo
-                                        //if(amountUsers == 0) {
                                         setupSingleRun(true);
-                                        //}
                                     }
                                 }
 
@@ -418,12 +410,66 @@ public class Simulation {
             time += 1;
         }
 
+
         Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
         this.getEnvironment().getClock().tick(1);
         time += 1;
 
         //amount = 0;
     }
+
+    public void simulateStepRun2(PollutionEnvironment Pollenvironment) {
+        this.getEnvironment().getMotes().stream()
+            .filter(Mote::isEnabled)
+            .filter(mote -> !(mote instanceof UserMote))
+            .map(mote -> { mote.consumePackets(); return mote;}) //DON'T replace with peek because the filtered mote after this line will not do the consume packet
+            .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
+            .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
+                TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
+            .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
+            .forEach(mote -> {
+                if(environment.get().getClock().getTime().isAfter(startTime)) {
+                    timeMap.put(mote, this.getEnvironment().getClock().getTime());
+                    if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
+                        this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                    } else {
+                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                    }
+                }
+            });
+        this.getEnvironment().getMotes().stream()
+            .filter(Mote::isEnabled)
+            .filter(mote-> mote instanceof UserMote)
+            .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
+            .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
+                TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
+            .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
+            .forEach(mote -> {
+                if(environment.get().getClock().getTime().isAfter(startTime)) {
+                    if (((UserMote) mote).hasChanged() && changed.get(mote) > 1) {
+                        wayPointMap.put(mote, 0);
+                    }
+                    timeMap.put(mote, this.getEnvironment().getClock().getTime());
+                    if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
+                        this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
+                    } else {
+                        ((UserMote) mote).changePath();
+                        System.out.println("Time2 : " +  environment.get().getClock().getTime().toNanoOfDay());
+                        changed.put(mote, changed.get(mote) + 1);
+                        if (changed.get(mote) > 1 && simulationRunner.getParameters().getRemoveConn() == 1) {
+                            if (wayPointMap.get(mote) >= 2) {
+                                mote.getPath().getWayPoints().remove(0);
+                            }
+                        }
+                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                    }
+                }
+            });
+        Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
+        this.getEnvironment().getClock().tick(1);
+    }
+
 
     private void deleteDouble(Mote mote) {
         List<Long> path2 = new ArrayList<>();
@@ -465,7 +511,8 @@ public class Simulation {
     }
 
     public boolean isFinished() {
-        if(!this.continueSimulation.test(this.getEnvironment()) && this.finished == false) {
+        if(!this.continueSimulation.test(this.getEnvironment()) && !this.finished) {
+            System.out.println(environment.get().getClock().getTime().toNanoOfDay());
             if (simulationRunner.getMultipleRun()) {
                     this.finished = true;
                     HashMap<Mote, Pair<Long, Long>> time = new HashMap<>();
@@ -518,7 +565,8 @@ public class Simulation {
         else {
             return !this.continueSimulation.test(this.getEnvironment());
         }
-        return false;
+        System.out.println(!this.continueSimulation.test(this.getEnvironment()));
+        return !this.continueSimulation.test(this.getEnvironment());
 
     }
 
@@ -553,9 +601,10 @@ public class Simulation {
         this.finished = false;
         this.buffer = new HashMap<>();
         this.time = 0;
+        sensorEnvironment.getPoll().clear();
 
-        routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
 
+        //routingApplication.setBufferSize(simulationRunner.getParameters().getBuffersize());
         this.wayPointMap = new HashMap<>();
         this.timeMap = new HashMap<>();
         this.routeEvaluator.reset();
@@ -595,21 +644,17 @@ public class Simulation {
         this.continueSimulation = pred;
 
     }
-
-    //void setupSingleRun(boolean shouldResetHistory) {
-    //    if (shouldResetHistory) {
-    //        this.getEnvironment().resetHistory();
-    //    }
-//
-   //     this.setupSimulation((env) -> !areAllMotesAtDestination());
-    //}
-
     void setupSingleRun(boolean shouldResetHistory) {
         if (shouldResetHistory) {
             this.getEnvironment().resetHistory();
+            if(routingApplication != null) {
+                routingApplication.clean();
+                routingApplication.reset();
+            }
         }
 
         this.setupSimulation((env) -> !areAllMotesAtDestination());
+        simulationRunner.setupSimulationRunner();
     }
 
     void setupTimedRun() {
@@ -623,18 +668,27 @@ public class Simulation {
     public void simulateStepRun(PollutionEnvironment Pollenvironment) {
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
+            .filter(mote-> !(mote.isArrivedToDestination()))
             .filter(mote-> mote instanceof UserMote)
             .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
             .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
                 TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
             .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
             .forEach(mote -> {
-                timeMap.put(mote, this.getEnvironment().getClock().getTime());
-                if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
-                    this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
-                } else {
-                    routingApplication.calculateRoutingAdaptations2((UserMote) mote,environment.get(),sensorEnvironment);
-                    wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                if(environment.get().getClock().getTime().isAfter(startTime)) {
+                    timeMap.put(mote, this.getEnvironment().getClock().getTime());
+                    if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
+                        //System.out.println("Start Time : " + getEnvironment().getClock().getTime().toNanoOfDay());
+                        this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
+                    } else {
+                        routingApplication.handleRouteRequestWithoutNetwork((UserMote) mote, environment.get(), sensorEnvironment);
+                        if (simulationRunner.getParameters().getRemoveConn() == 1 && mote.getPath().getWayPoints().size() == 3) {
+                            mote.getPath().getWayPoints().remove(0);
+                        } else {
+                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                        }
+                    }
                 }
             });
         Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
@@ -642,6 +696,26 @@ public class Simulation {
     }
 
     public boolean RunisFinished() {
+        if(!this.continueSimulation.test(this.getEnvironment()))
+        {
+            System.out.println("Total Time" + environment.get().getClock().getTime().toNanoOfDay());
+            String message = "Evaluation of the path \n";
+            for (Mote mote : getEnvironment().getMotes()) {
+                if (mote instanceof UserMote) {
+                    if (getApproach() != null && getApproach().getName() == "Air Quality") {
+                        //long averageTime = routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getRight() / routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getLeft();
+                        message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) +
+                            " , Amount adaptations: " + routingApplication.getAmountAdaptations().get(mote.getEUI())+
+                           "\n";
+
+                    } else {
+                        message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + "\n";
+                    }
+
+                }
+            }
+            JOptionPane.showMessageDialog(null, message, "Results", JOptionPane.INFORMATION_MESSAGE);
+        }
         return !this.continueSimulation.test(this.getEnvironment());
     }
 

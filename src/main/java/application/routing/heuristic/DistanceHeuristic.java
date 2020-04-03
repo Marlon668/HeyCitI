@@ -21,7 +21,7 @@ public class DistanceHeuristic implements RoutingHeuristic {
     }
 
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime,double velocity) {
+    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime) {
         return 0;
     }
 
