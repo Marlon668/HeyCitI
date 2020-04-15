@@ -127,9 +127,6 @@ class TestGraph {
         assertTrue(toCheck.contains(new Connection(1L, 2L)));
         assertTrue(toCheck.contains(new Connection(1L, 3L)));
 
-        toCheck = graph.getOutgoingConnections(2L);
-        assertTrue(toCheck.isEmpty());
-
         toCheck = graph.getOutgoingConnections(4L);
         assertTrue(toCheck.contains(new Connection(4L, 1L)));
         assertTrue(toCheck.contains(new Connection(4L, 2L)));

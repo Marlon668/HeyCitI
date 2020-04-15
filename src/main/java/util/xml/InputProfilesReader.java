@@ -28,10 +28,10 @@ public class InputProfilesReader {
 
             var inputProfilesList = inputProfilesElement.getElementsByTagName("inputProfile");
             for (int i = 0; i < inputProfilesList.getLength(); i++) {
-                Element inputProfileElement = (Element) inputProfilesList.item(i);
+                    Element inputProfileElement = (Element) inputProfilesList.item(i);
 
                 String name = XMLHelper.readChild(inputProfileElement, "name");
-                int numberOfRuns = (int) Double.parseDouble(XMLHelper.readChild(inputProfileElement, "numberOfRuns"));
+                int numberOfRuns = Integer.parseInt(XMLHelper.readChild(inputProfileElement, "numberOfRuns"));
 
                 long simulationDuration = Long.parseLong(XMLHelper.readChild(inputProfileElement, "simulationDuration"));
                 String timeUnitName = XMLHelper.readChild(inputProfileElement, "timeUnit");
@@ -76,16 +76,6 @@ public class InputProfilesReader {
                     moteProbabilities.put(moteNumber - 1, activationProbability);
                 }
 
-                var adaptationParameters = inputProfileElement.getElementsByTagName("adaptationParameters");
-
-                Element adaptationElement = (Element) adaptationParameters.item(0);
-                double alphaValue = Double.parseDouble(XMLHelper.readChild(adaptationElement, "alphaValue"));
-                double evaluationValue = Double.parseDouble(XMLHelper.readChild(adaptationElement, "evaluationValue"));
-                int bufferSize  = (int) Double.parseDouble(XMLHelper.readChild(adaptationElement, "bufferSize"));
-                int synchronisedIssue  = (int) Double.parseDouble(XMLHelper.readChild(adaptationElement, "synchronisedIssue"));
-                int amountRuns = (int) Double.parseDouble(XMLHelper.readChild(adaptationElement, "amountRuns"));
-                int setupFirst = (int) Double.parseDouble(XMLHelper.readChild(adaptationElement, "setupFirst"));
-
                 InputProfile ip = timeUnit.map(chronoUnit ->
                     new InputProfile(
                         name,
@@ -96,13 +86,7 @@ public class InputProfilesReader {
                         new HashMap<>(),
                         inputProfileElement,
                         simulationDuration,
-                        chronoUnit,
-                        bufferSize,
-                        alphaValue,
-                        evaluationValue,
-                        synchronisedIssue,
-                        amountRuns,
-                        setupFirst))
+                        chronoUnit))
                     .orElseGet(() -> new InputProfile(
                         name,
                         new QualityOfService(adaptationGoalHashMap),

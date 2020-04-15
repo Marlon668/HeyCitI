@@ -192,6 +192,7 @@ public class ConfigurationWriter {
             //    Information
             // ---------------
 
+            /**
             Element information = doc.createElement("information");
 
             for (long connection : simulationRunner.getInformation().keySet()) {
@@ -219,6 +220,7 @@ public class ConfigurationWriter {
 
 
             }
+             **/
 
 
             // ---------------
@@ -231,7 +233,7 @@ public class ConfigurationWriter {
             rootElement.appendChild(gateways);
             rootElement.appendChild(wayPointsElement);
             rootElement.appendChild(connectionsElement);
-            rootElement.appendChild(information);
+            //rootElement.appendChild(information);
 
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();

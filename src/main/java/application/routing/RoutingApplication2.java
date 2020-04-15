@@ -1,7 +1,6 @@
 package application.routing;
 
     import EnvironmentAPI.SensorEnvironment;
-    import application.Application;
     import be.kuleuven.cs.som.annotate.Model;
     import iot.Environment;
     import iot.lora.LoraWanPacket;
@@ -16,12 +15,19 @@ package application.routing;
     import util.*;
 
     import java.nio.ByteBuffer;
+    import java.time.LocalTime;
     import java.util.*;
     import java.util.stream.Collectors;
     import java.util.stream.IntStream;
+    import java.util.stream.Stream;
 
+/**
+ * RoutingApplication for KAStar with adaptationgoal is new path a given percentage better than previous path
+ * An pathanalyser is used to determine if the cost of the current followed path has changed enough to change
+ * the path of the mote
+ * @author Marlon Saelens
+ */
 public class RoutingApplication2 extends RoutingApplication implements Cloneable {
-    // RoutingApplication for KAStar with adaptationgoal is new path a given percentage better than previous path
     // The routes stored per device
     private Map<Long, Pair<Double,List<GeoPosition>>> routes;
 
@@ -38,20 +44,7 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
 
     private RouteAnalyser pathAnalyser;
 
-    /**
-     Sets the buffersizeWidth used by this application
-     How much paths could we save in each step in the adaptation algorithm
-     The amount of best paths that we must search for by using the K-A* algorithm
-     **/
-    private int bufferSizeHeight;
-
-    /**
-     buffer size width used by the adaptation algorithm
-     * How much paths could we save in each step in the adaptation algorithm
-     **/
-    private int bufferSizeWidth;
-
-    private long beginTime;
+    private LocalTime startTime;
 
     private Map<Long, Long> maxTime;
 
@@ -89,15 +82,6 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         this.bufferSizeWidth = bufferSizeWidth;
     }
 
-    @Override
-    public int getBufferSizeHeight() {
-        return this.bufferSizeHeight;
-    }
-
-    @Override
-    public int getBufferSizeWidth() {
-        return this.bufferSizeWidth;
-    }
 
     @Override
     public Map<Long, Long> getMaxTime() {
@@ -136,7 +120,9 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
 
     public RoutingApplication2(PathFinder pathFinder, Environment environment, double treshold) {
         super(pathFinder,environment);
-        System.out.println("2");
+        this.visualiseRun = new HashMap<>();
+        this.adaptationPoints = new HashMap<>();
+        this.airQualityRun = new HashMap<>();
         this.routes = new HashMap<>();
         this.lastPositions = new HashMap<>();
         this.graph = environment.getGraph();
@@ -156,13 +142,17 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
 
             }
         }
-        beginTime = 31380L;
+        startTime = LocalTime.of(0,0,40);
+    }
+
+    @Override
+    public void handleRouteRequestWithoutNetworkForRun(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment){
+
     }
 
     @Override
     public void handleRouteRequestWithoutNetwork(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
-        //System.out.println("Time " + moteStartTime);
         GeoPosition endPosition = mote.getDestination();
         // Use the routing algorithm to calculate the K best paths for the mote
         List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
@@ -247,160 +237,187 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         this.routes.get(mote.getEUI()).getRight().remove(0);
     }
 
+
+    /**
+     * Calculate all the routingApplications of every mote in the environment before simulating
+     * It saves a hashmap where the keys are all the geopositions where there happens an adaptation of the path
+     * and the values is the changed path
+     *
+     * @param environment the environment where we would do the simulation
+     * @param sensorEnvironment the sensorenvironment that we would use for the simulation
+     */
     @Override
     public void calculateRoutingAdaptations(Environment environment, SensorEnvironment sensorEnvironment) {
-        HashMap<Mote,HashMap<GeoPosition, List<GeoPosition>>> changesPath = new HashMap<>();
-        long currentTime = 31380L;
-        HashMap<UserMote,GeoPosition> currentPositionMote = new HashMap<>();
-        HashMap<UserMote,Long> currentTimeMote = new HashMap<>();
+        HashMap<Mote,HashMap<GeoPosition, List<List<GeoPosition>>>> changesPath = new HashMap<>();
+        Map<Mote, Integer> wayPointMap = new HashMap<>();
+        Map<Mote, LocalTime> timeMap = new HashMap<>();
         for(Mote mote : environment.getMotes()){
             if(mote instanceof UserMote) {
-                GeoPosition currentPosition = environment.getMapHelper().toGeoPosition(mote.getPosInt());
-                currentPositionMote.put((UserMote) mote, currentPosition);
-                currentTimeMote.put((UserMote) mote, currentTime);
                 changesPath.put(mote,new HashMap<>());
+                wayPointMap.put(mote,0);
+                timeMap.put(mote, environment.getClock().getTime());
             }
         }
-        long i = 0;
-        while (i <= currentTime) {
-            sensorEnvironment.getPoll().doStep(i*1000000,sensorEnvironment.getSensors().get(0).getEnvironment());
-            i++;
-        }
-        while(notAllMotesFinished(currentPositionMote))
+        while(notAllMotesFinished(environment))
         {
-            long finalCurrentTime = currentTime;
             environment.getMotes().stream()
+                .filter(Mote::isEnabled)
+                .filter(mote-> !(mote.isArrivedToDestination()))
                 .filter(mote -> mote instanceof UserMote)
-                .filter(mote -> currentTimeMote.get(mote).equals(finalCurrentTime))
-                .filter(mote -> !(currentPositionMote.get(mote).equals(((UserMote) mote).getDestination())))
+                .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
+                .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
+                    TimeHelper.nanoToMili(environment.getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
+                .filter(mote -> TimeHelper.nanoToMili(environment.getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
                 .forEach(mote -> {
-                    GeoPosition endPosition = ((UserMote) mote).getDestination();
-                    // Use the routing algorithm to calculate the K best paths for the mote
-                    List<Pair<Double, List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph, currentPositionMote.get(mote), endPosition, bufferSizeWidth, finalCurrentTime / 1000, mote.getMovementSpeed());
-                    putKBestPathsBuffers(mote.getEUI(), routeMote);
-                    Pair<Double, List<GeoPosition>> bestPath;
-                    if (bufferKBestPaths.get(mote.getEUI()).size() == bufferSizeHeight) {
-                        bestPath = takeBestPath(bufferKBestPaths.get(mote.getEUI()));
-                        bufferKBestPaths = new HashMap<>();
-                        if (bestPath.getRight().size() > 0) {
-                            if (routes.get(mote.getEUI()) != null) {
-                                List<GeoPosition> path = routes.get(mote.getEUI()).getRight();
-                                if (bestPath.getRight().equals(path) || pathAnalyser.isBetterPath(this.routes.get(mote.getEUI()), bestPath)) {
-                                    double newAccumulatedCost = 0;
-                                    GeoPosition lastWaypoint = null;
-                                    for(GeoPosition j : this.routes.get(mote.getEUI()).getRight())
-                                    {
-                                        if(lastWaypoint == null)
-                                        {
-                                            lastWaypoint = j;
-                                        }
-                                        else{
-                                            double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,j);
-                                            newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
-                                            lastWaypoint = j;
-                                        }
-                                    }
-                                    bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
-                                    this.routes.put(mote.getEUI(), bestPath);
-                                }
-                                else{
-                                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
-                                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
-                                    List<GeoPosition> route = new ArrayList<GeoPosition>(bestPath.getRight());
-                                    HashMap<GeoPosition, List<GeoPosition>> changePath = changesPath.get(mote);
-                                    changePath.put(currentPositionMote.get(mote), route);
-                                    changesPath.put(mote, changePath);
-                                    this.routes.put(mote.getEUI(), bestPath);
-                                }
-                            }
-                            else{
-                                double newAccumulatedCost = 0;
-                                GeoPosition lastWaypoint = null;
-                                for(GeoPosition j : this.routes.get(mote.getEUI()).getRight())
-                                {
-                                    if(lastWaypoint == null)
-                                    {
-                                        lastWaypoint = j;
-                                    }
-                                    else{
-                                        double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,j);
-                                        newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
-                                        lastWaypoint = j;
-                                    }
-                                }
-                                bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
-                                this.routes.put(mote.getEUI(), bestPath);
-                                List<GeoPosition> route = new ArrayList<GeoPosition>(bestPath.getRight());
-                                HashMap<GeoPosition, List<GeoPosition>> changePath = changesPath.get(mote);
-                                changePath.put(currentPositionMote.get(mote), route);
-                                changesPath.put(mote, changePath);
-                            }
-
+                    if(environment.getClock().getTime().isAfter(startTime)) {
+                        timeMap.put(mote, environment.getClock().getTime());
+                        if (!environment.getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
+                            environment.moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         } else {
-                            double newAccumulatedCost = 0;
-                            GeoPosition lastWaypoint = null;
-                            for(GeoPosition j : this.routes.get(mote.getEUI()).getRight())
-                            {
-                                if(lastWaypoint == null)
-                                {
-                                    lastWaypoint = j;
+                            List<GeoPosition> adaptation = handleRouteRequestWithoutNetwork2((UserMote) mote, environment, sensorEnvironment);
+                            if(adaptation!= null){
+                                HashMap<GeoPosition, List<List<GeoPosition>>> changePath = changesPath.get(mote);
+                                if(changePath.get(environment.getMapHelper().toGeoPosition(mote.getPosInt())) == null){
+                                    List<List<GeoPosition>> paths = new ArrayList<>();
+                                    paths.add(adaptation);
+                                    changePath.put(environment.getMapHelper().toGeoPosition(mote.getPosInt()),paths);
                                 }
                                 else{
-                                    double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,j);
-                                    newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
-                                    lastWaypoint = j;
+                                    List<List<GeoPosition>> paths = changePath.get(environment.getMapHelper().toGeoPosition(mote.getPosInt()));
+                                    paths.add(adaptation);
+                                    changePath.put(environment.getMapHelper().toGeoPosition(mote.getPosInt()),paths);
                                 }
                             }
-                            bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
-                            this.routes.put(mote.getEUI(), bestPath);
-                        }
-                    } else {
-                        if (routes.get(mote.getEUI()) == null) {
-                            bestPath = this.pathFinder.retrieveKPaths(graph, currentPositionMote.get(mote), endPosition, bufferSizeWidth, finalCurrentTime / 1000, mote.getMovementSpeed()).get(0);
-                            this.routes.put(mote.getEUI(), bestPath);
-                            List<GeoPosition> route = new ArrayList<GeoPosition>(bestPath.getRight());
-                            HashMap<GeoPosition, List<GeoPosition>> changePath = changesPath.get(mote);
-                            changePath.put(currentPositionMote.get(mote), route);
-                            changesPath.put(mote, changePath);
-                        } else {
-                            double newAccumulatedCost = 0;
-                            GeoPosition lastWaypoint = null;
-                            for(GeoPosition j : this.routes.get(mote.getEUI()).getRight())
-                            {
-                                if(lastWaypoint == null)
-                                {
-                                    lastWaypoint = j;
-                                }
-                                else{
-                                    double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,j);
-                                    newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
-                                    lastWaypoint = j;
-                                }
-                            }
-                            bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
-                            if (bestPath.getRight().size() > 1) {
-                                this.routes.put(mote.getEUI(), bestPath);
-                            }
+                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
                         }
                     }
-                    this.routes.get(mote.getEUI()).getRight().remove(0);
-                    Double distance = MapHelper.distance(currentPositionMote.get(mote), this.routes.get(mote.getEUI()).getRight().get(0));
-                    //System.out.println("Distance "  + distance);
-                    long time = currentTimeMote.get(mote);
-                    time += distance * 1000 / mote.getMovementSpeed() * 1000;
-                    currentPositionMote.put((UserMote) mote, this.routes.get(mote.getEUI()).getRight().get(0));
-                    currentTimeMote.put((UserMote) mote,time);
-
                 });
-            sensorEnvironment.getPoll().doStep(beginTime*1000000,sensorEnvironment.getSensors().get(0).getEnvironment());
-            currentTime ++;
-
+            sensorEnvironment.getPoll().doStep(environment.getClock().getTime().toNanoOfDay(), environment);
+            environment.getClock().tick(1);
         }
         environment.getMotes().stream()
             .filter(mote-> mote instanceof UserMote)
             .forEach(mote->{
                 ((UserMote) mote).setChangesPath(changesPath.get(mote));
             });
+    }
+
+    /**
+     * Determines if all motes are finished
+     * @param environment hash map that contains for every mote the current position of that mote
+     * @return true if current position of mote is equal to its destination, false otherwise
+     */
+    private boolean notAllMotesFinished(Environment environment){
+        for(Mote mote : environment.getMotes()){
+            if(!(mote.isArrivedToDestination())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Handles a route request without sending packets
+     * It gives directly the next part of the route to the mote
+     * Used for calculating all routing application before running
+     *
+     * @param mote Usermote where we would send a next part of the route to it
+     * @param environment the environment that we use for the simulation
+     */
+    protected List<GeoPosition> handleRouteRequestWithoutNetwork2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
+        GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
+        GeoPosition endPosition = mote.getDestination();
+        // Use the routing algorithm to calculate the K best paths for the mote
+        List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
+        putKBestPathsBuffers(mote.getEUI(), routeMote);
+        Pair<Double, List<GeoPosition>> bestPath;
+        List<GeoPosition> changedPath = new ArrayList<>();
+        boolean send = false;
+        if (bufferKBestPaths.get(mote.getEUI()).size() == bufferSizeHeight) {
+            bestPath = takeBestPath(bufferKBestPaths.get(mote.getEUI()));
+            bufferKBestPaths = new HashMap<>();
+            if (bestPath.getRight().size() > 0) {
+                if (routes.get(mote.getEUI()) != null) {
+                    List<GeoPosition> path = routes.get(mote.getEUI()).getRight();
+                    if (bestPath.getRight().equals(path) || pathAnalyser.isBetterPath(this.routes.get(mote.getEUI()), bestPath)) {
+                        double newAccumulatedCost = 0;
+                        GeoPosition lastWaypoint = null;
+                        for (GeoPosition i : this.routes.get(mote.getEUI()).getRight()) {
+                            if (lastWaypoint == null) {
+                                lastWaypoint = i;
+                            } else {
+                                double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint, i);
+                                newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
+                                lastWaypoint = i;
+                            }
+                        }
+                        bestPath = new Pair(newAccumulatedCost, this.routes.get(mote.getEUI()).getRight());
+                    } else {
+                        int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                        getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                        changedPath = Stream.concat(mote.getPath().getWayPoints().stream(), bestPath.getRight().stream()).collect(Collectors.toList());
+                        send = true;
+                    }
+                }
+                this.routes.put(mote.getEUI(), bestPath);
+            }
+            else {
+                double newAccumulatedCost = 0;
+                GeoPosition lastWaypoint = null;
+                for(GeoPosition i : this.routes.get(mote.getEUI()).getRight())
+                {
+                    if(lastWaypoint == null)
+                    {
+                        lastWaypoint = i;
+                    }
+                    else{
+                        double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,i);
+                        newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
+                        lastWaypoint = i;
+                    }
+                }
+                bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
+                this.routes.put(mote.getEUI(), bestPath);
+            }
+        } else {
+            if (routes.get(mote.getEUI()) == null) {
+                bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                this.routes.put(mote.getEUI(), bestPath);
+                bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                this.routes.put(mote.getEUI(), bestPath);
+                changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
+                send = true;
+            } else {
+                double newAccumulatedCost = 0;
+                GeoPosition lastWaypoint = null;
+                for(GeoPosition i : this.routes.get(mote.getEUI()).getRight())
+                {
+                    if(lastWaypoint == null)
+                    {
+                        lastWaypoint = i;
+                    }
+                    else{
+                        double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,i);
+                        newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
+                        lastWaypoint = i;
+                    }
+                }
+                bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
+                if (bestPath.getRight().size() > 1) {
+                    this.routes.put(mote.getEUI(), bestPath);
+                }
+            }
+        }
+        Path motePath = mote.getPath();
+        motePath.addPosition(bestPath.getRight().get(1));
+        mote.setPath(motePath.getWayPoints());
+        this.routes.get(mote.getEUI()).getRight().remove(0);
+        if(send){
+            return changedPath;
+        }
+        else{
+            return null;
+        }
     }
 
     /**
@@ -421,8 +438,8 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
      * With adaptation goal is a given percentage better than previous path
      * @param message The message which contains the route request.
      */
-    private void handleRouteRequest(LoraWanPacket message) {
-        System.out.println("ok");
+    @Override
+    protected void handleRouteRequest(LoraWanPacket message) {
         long startTime = System.nanoTime();
         var body = Arrays.stream(Converter.toObjectType(message.getPayload()))
             .skip(1) // Skip the first byte since this indicates the message type
@@ -569,13 +586,20 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
 
 
 
-
+    /**
+     * Function to take the best path out of List of a list of possible best paths together with its cost
+     * Every row of the list contains the k best paths calculated at a waypoint with the K-A* algorithm
+     * First we select the most common paths out of this list of lists and than the path with the less
+     * air quality calculated as an average of the cost all the common pahts, where paths calculated closer
+     * to the current position of the mote, have a higher priority to be chosen.
+     * @param bufferKBestPaths a list of lists of possible paths to chose from
+     * @return the best path together with its cost.
+     */
     private Pair<Double,List<GeoPosition>> takeBestPath(List<List<Pair<Double, List<GeoPosition>>>> bufferKBestPaths) {
         List<Pair<Double,List<GeoPosition>>> lastMeasure = bufferKBestPaths.get(bufferKBestPaths.size()-1);
         HashMap<Integer,Pair<Integer,Double>> average = new HashMap<>();
         for(int k = 0;k<= lastMeasure.size()-1;k++){
             Pair<Double,List<GeoPosition>> path = lastMeasure.get(k);
-            //System.out.println("Cost" + path.getLeft());
             average.put(k,new  Pair(1,path.getLeft()));
             for (int i =0;i <= bufferKBestPaths.size()-2;i++)
             {
@@ -583,7 +607,6 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
                 {
                     if(containsList(bufferKBestPaths.get(i).get(j).getRight(),path.getRight()))
                     {
-                        //System.out.println(k);
                         int amount = average.get(k).getLeft() + 1;
                         double accumulatedCost = average.get(k).getRight() + bufferKBestPaths.get(i).get(j).getLeft();
                         average.put(k,new Pair(amount,accumulatedCost));
@@ -663,18 +686,20 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
      * Clean the cached routes and mote positions.
      */
     @Override
-    public void clean() {
+    public void clean(int delete) {
         this.routes = new HashMap<>();
         this.lastPositions = new HashMap<>();
         this.bufferKBestPaths = new HashMap<>();
-        amountAdaptations.keySet().stream().forEach(moteEui -> amountAdaptations.put(moteEui,0));
-        long time = 0;
-        averageTimeForDecisionPerMote.keySet().stream().forEach(moteEUI -> averageTimeForDecisionPerMote.put(moteEUI,new Pair(0,time)));
-        maxTime.keySet().stream().forEach(moteEUI -> maxTime.put(moteEUI,time));
+        if(delete == 2) {
+            amountAdaptations.keySet().stream().forEach(moteEui -> amountAdaptations.put(moteEui, 0));
+            long time = 0;
+            averageTimeForDecisionPerMote.keySet().stream().forEach(moteEUI -> averageTimeForDecisionPerMote.put(moteEUI, new Pair(0, time)));
+            maxTime.keySet().stream().forEach(moteEUI -> maxTime.put(moteEUI, time));
+        }
     }
 
     @Override
     public void reset(){
-        beginTime = 31380L;
+        startTime = LocalTime.of(0,0,40);
     }
 }

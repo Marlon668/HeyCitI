@@ -28,6 +28,8 @@ public class Mote extends NetworkEntity {
     private static final int DEFAULT_PERIOD_SENDING_PACKET = 20;
     // default application identifier
     private static final long DEFAULT_APPLICATION_EUI = 1;
+    private int time = 10;
+    private boolean hasChanged = false;
 
 
     // A List of MoteSensors representing all sensors on the mote.
@@ -72,20 +74,6 @@ public class Mote extends NetworkEntity {
     private ReceivedPacketStrategy receivedPacketStrategy;
 
     protected List<ConsumePacketStrategy> consumePacketStrategies;
-
-    private HashMap<GeoPosition,List<GeoPosition>> adaptationRoutsMote;
-
-    public void setAdaptationRoutsMote(HashMap<GeoPosition, List<GeoPosition>> adaptationRoutsMote) {
-        this.adaptationRoutsMote = adaptationRoutsMote;
-    }
-
-    public HashMap<GeoPosition, List<GeoPosition>> getAdaptationRoutsMote() {
-        return adaptationRoutsMote;
-    }
-
-    public void addAdpatationRoute(GeoPosition geoPosition, List<GeoPosition> path){
-        adaptationRoutsMote.put(geoPosition,path);
-    }
 
     //endregion
 

@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class DistanceHeuristic implements RoutingHeuristic {
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry){
+    public double calculateCost(HeuristicEntry entry){
         GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
         GeoPosition end = entry.graph.getWayPoint(entry.connection.getTo());
 
@@ -21,7 +21,7 @@ public class DistanceHeuristic implements RoutingHeuristic {
     }
 
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime) {
+    public double calculateCost(HeuristicEntry entry,long startTime) {
         return 0;
     }
 
@@ -32,14 +32,6 @@ public class DistanceHeuristic implements RoutingHeuristic {
         GeoPosition end = graph.getWayPoint(connection.getTo());
 
         return MapHelper.distance(begin,end);
-    }
-
-    @Override
-    public double calculateHeuristic(HeuristicEntry entry) {
-        GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
-        GeoPosition end = entry.graph.getWayPoint(entry.connection.getTo());
-
-        return MapHelper.distance(begin, end);
     }
 
     @Override

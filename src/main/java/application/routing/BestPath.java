@@ -17,7 +17,9 @@ import java.util.stream.Collectors;
 
 
 /**
- * An class which implements the A* routing algorithm, assuming the used heuristic is consistent.
+ * An class for calculating the best path, this class could determine the future air quality value
+ * based on the heuristic of a path in an environment with sources that expels varying pollution
+ * @author Marlon Saelens
  */
 public class BestPath{
 
@@ -27,23 +29,17 @@ public class BestPath{
     private SensorEnvironment pollutionEnvironment;
 
 
-    private Map<Long,List<Double>> information;
-
-    public void setInformation(Map<Long,List<Double>> information)
-    {
-        this.information = information;
-    }
-
     public BestPath(RoutingHeuristic heuristic, SensorEnvironment pollutionEnvironment) {
         this.pollutionEnvironment = pollutionEnvironment;
 
     }
 
-
-
-
-
-
+    /**
+     * Function to retrieve the best path for a given mote in a particular environment
+     * @param environment environment where we want to determine the best path of a mote
+     * @param mote the mote to determine the best path of
+     * @return
+     */
     public Pair<Double,List<GeoPosition>>  retrievePath(Environment environment, UserMote mote) {
         GraphStructure graph = environment.getGraph();
         GeoPosition begin = environment.getMapHelper().toGeoPosition(mote.getOriginalPosInt());
@@ -54,17 +50,13 @@ public class BestPath{
         long endWaypointId = graph.getClosestWayPointWithinRange(end, DISTANCE_THRESHOLD_POSITIONS)
             .orElseThrow(() -> new IllegalStateException("The destination position retrieved from the message is not located at a waypoint."));
         PriorityQueue<FringeEntry> fringe = new PriorityQueue<>();
-        // Initialize the fringe by adding the first outgoing connections
         graph.getConnections().entrySet().stream()
             .filter(entry -> entry.getValue().getFrom() == beginWaypointId)
             .forEach(entry -> {
-                Pair<Double, Long> value = calculateCostConnection(graph,31820,veloctiy,entry.getKey());
+                Pair<Double, Long> value = calculateCostConnection(graph,40000,veloctiy,entry.getKey());
                 fringe.add(new FringeEntry(
                     List.of(entry.getKey()),value.getRight(),value.getLeft()));
             });
-
-
-        // Actual A* algorithm
         while (!fringe.isEmpty()) {
             FringeEntry current = fringe.poll();
             long lastWaypointId = graph.getConnection(current.getLastConnectionId()).getTo();
@@ -72,10 +64,6 @@ public class BestPath{
             if (lastWaypointId == endWaypointId) {
                 return new Pair(0,this.getPath(current.connections, graph));
             }
-
-
-            // Explore the different outgoing connections from the last connection in the list
-            // -> Add the new possible paths (together with their new heuristic values) to the fringe
             graph.getOutgoingConnectionsById(lastWaypointId).stream()
                 .filter(connId ->!containsWaypoints(current.connections, connId, graph))
                 .forEach(connId -> {
@@ -90,6 +78,14 @@ public class BestPath{
         throw new RuntimeException(String.format("Could not find a path from {%s} to {%s}", begin.toString(), end.toString()));
     }
 
+    /**
+     * Function that determines if reversed connection is already inserted in a list of connectionId's
+     * @param connections list of connectionId's
+     * @param connectionId connectionId of the connection that we must determine if the list of connectionId's
+     *                     contains the its reversed connection
+     * @param graph graph to receive begin- or endpoint of a connection
+     * @return true if connections contain reversed connection of the given connection, false otherwise
+     */
     private boolean containsWaypoints(List<Long> connections,Long connectionId,GraphStructure graph)
     {
         for(Long conn: connections)
@@ -122,13 +118,24 @@ public class BestPath{
         return points;
     }
 
+    /**
+     * Calculate the air quality of a connection for a given time and velocity of a mote
+     * @param graph the graph that is used to receive the begin- and endpoint of a connection
+     * @param time simulationTime upon which we calculate the cost of a connection
+     * @param velocity velocity of the mote upon which we calculate the best path from
+     * @param connectionId connectionId of the connection upon which we want to calculate its air quality from
+     * @return Pair with the air quality of the connection and the new time upon which the mote arrived to
+     *         the end point of the connection given its velocity
+     */
     private Pair<Double, Long> calculateCostConnection(GraphStructure graph, long time, double velocity, Long connectionId)
     {
         Connection connection = graph.getConnection(connectionId);
         GeoPosition begin = graph.getWayPoint(connection.getFrom());
         GeoPosition end = graph.getWayPoint(connection.getTo());
+        // distance in meter
         double distance = MapHelper.distance(begin,end)*1000;
         int period = 0;
+        // time in seconds
         long endTime = (long)(distance/velocity)*1000 + time;
         double airValue = pollutionEnvironment.getDataBetweenPointsFromTime(begin,end, time,endTime,velocity,0.1);
         return new Pair<Double, Long>(airValue*distance/1000,endTime);

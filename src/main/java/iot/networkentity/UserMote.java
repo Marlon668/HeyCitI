@@ -32,18 +32,19 @@ public class UserMote extends Mote {
     private GeoPosition destination;
     private final LocalTime whenAskPath = LocalTime.of(0, 0, 15);
     private boolean alreadyRequested;
+    // boolean that gives an indication that we use an adaptation algorithm to change the path
     private boolean adaptation;
-    private HashMap<GeoPosition,List<GeoPosition>> changesPath ;
+    // HashMap containing all the adaptations of the path of a mote, calculated before running the simulation
+    // used to visualise properly the routing of motes
+    private HashMap<GeoPosition,List<List<GeoPosition>>> changesPath ;
+    // Boolean that determines if we had changed the path used in the simulation without network option 2
     private boolean hasChanged;
     private Color color;
 
-    public HashMap<GeoPosition,List<GeoPosition>> getChangesPath(){
-        return changesPath;
-    }
-
-    public void setChangesPath(HashMap<GeoPosition,List<GeoPosition>> changesPath){
+    public void setChangesPath(HashMap<GeoPosition,List<List<GeoPosition>>> changesPath){
         this.changesPath = changesPath;
     }
+
 
     public void setArrived(){
         arrived = true;
@@ -156,17 +157,6 @@ public class UserMote extends Mote {
         });
     }
 
-    public void sendAnotherWayPointOfPath(){
-        if (getPath().getDestination().isEmpty()) {
-            throw new IllegalStateException("You can't require new part of path without a previous one");
-        }
-        byte[] payload= new byte[9];
-        payload[0] = MessageType.REQUEST_UPDATE_PATH.getCode();
-        System.arraycopy(Converter.toByteArray(getPath().getDestination().get()), 0, payload, 1, 8);
-        sendToGateWay(new LoraWanPacket(getEUI(), getApplicationEUI(), payload,
-            new BasicFrameHeader().setFCnt(incrementFrameCounter()), new LinkedList<>()));
-    }
-
     private SensorDataGenerator getGPSSensor() {
         return getSensors().stream().filter(s -> s.equals(MoteSensor.GPS)).findFirst().orElseThrow().getSensorDataGenerator();
     }
@@ -180,15 +170,6 @@ public class UserMote extends Mote {
      * @param active true to set active, false otherwise
      */
     public void setActive(boolean active) {
-        //if (active) {
-        //    this.getEnvironment().getMotes().stream()
-        //       .filter(m -> m instanceof UserMote)
-        //        .map(m -> (UserMote)m)
-        //        .forEach(m -> {
-        //            m.setActive(false);
-        //            m.enable(false);
-        //        });
-        //}
         isActive = active;
     }
 
@@ -223,26 +204,25 @@ public class UserMote extends Mote {
         }
     }
 
+    /**
+     * Function to change the path of the mote if the simualtion option is without network option 2
+     */
     public void changePath(){
         GeoPosition setPosition = null;
         for (GeoPosition positionToChange : changesPath.keySet()) {
             if (MapHelper.distance(getEnvironment().getMapHelper().toGeoPosition(getPosInt()), positionToChange) < 0.002) {
-                setPath(changesPath.get(positionToChange));
+                setPath(changesPath.get(positionToChange).get(0));
                 setPosition = positionToChange;
                 this.hasChanged = true;
                 break;
             }
         }
-        changesPath.remove(setPosition);
-    }
-
-    public boolean hasChanged(){
-        if(hasChanged){
-            hasChanged = false;
-            return true;
-        }
-        else{
-            return false;
+        if(setPosition != null) {
+            if (changesPath.get(setPosition).size() == 1) {
+                changesPath.remove(setPosition);
+            } else {
+                changesPath.get(setPosition).remove(0);
+            }
         }
     }
 

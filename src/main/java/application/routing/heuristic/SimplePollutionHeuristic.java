@@ -24,33 +24,25 @@ public class SimplePollutionHeuristic implements RoutingHeuristic {
     }
 
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry) {
+    public double calculateCost(HeuristicEntry entry) {
         GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
         GeoPosition end = entry.graph.getWayPoint(entry.connection.getTo());
 
         double pollutionValue = this.env.getDataBetweenPoints(begin,end, 0.1);
 
-
-        //System.out.println((0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350) );
-        //(0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350);
         // The lower the pollution level, the better the heuristic
-        return pollutionValue*MapHelper.distance(begin,end);
-        //factor*MapHelper.distance(begin,end)*MapHelper.distance(begin,end);
+        return pollutionValue*pollutionValue*pollutionValue*MapHelper.distance(begin,end)*10;
     }
 
     @Override
-    public double calculateAccumulatedCost(HeuristicEntry entry,long startTime) {
+    public double calculateCost(HeuristicEntry entry,long startTime) {
         GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
         GeoPosition end = entry.graph.getWayPoint(entry.connection.getTo());
 
         double pollutionValue = this.env.getDataBetweenPointsFromTime(begin,end,startTime,0.1);
 
-
-        //System.out.println((0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350) );
-        //(0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350);
         // The lower the pollution level, the better the heuristic
-        return pollutionValue*MapHelper.distance(begin,end);
-        //factor*MapHelper.distance(begin,end)*MapHelper.distance(begin,end);
+        return pollutionValue*pollutionValue*pollutionValue*MapHelper.distance(begin,end)*10;
     }
 
     @Override
@@ -60,29 +52,19 @@ public class SimplePollutionHeuristic implements RoutingHeuristic {
         GeoPosition end = graph.getWayPoint(connection.getTo());
 
         double pollutionValue = this.env.getDataBetweenPoints(begin,end, 0.1);
-        //System.out.println((0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350));
 
         //System.out.println(pollutionValue);
         // The lower the pollution level, the better the heuristic
-        return pollutionValue *MapHelper.distance(begin,end);
+        return pollutionValue*pollutionValue*pollutionValue *MapHelper.distance(begin,end)*pollutionValue*10;
     }
 
     @Override
     public double calculateCostBetweenTwoNeighbours(GeoPosition begin, GeoPosition end)
     {
         double pollutionValue = this.env.getDataBetweenPoints(begin,end, 0.1);
-        //System.out.println(pollutionValue);
 
         // The lower the pollution level, the better the heuristic
-        //System.out.println((0.80*pollutionValue+0.20*MapHelper.distance(begin,end)/0.350));
-        return pollutionValue*MapHelper.distance(begin,end);
+        return pollutionValue*pollutionValue*pollutionValue*MapHelper.distance(begin,end)*10;
 
-    }
-
-    @Override
-    public double calculateHeuristic(HeuristicEntry entry) {
-        double accumulatedCost = calculateAccumulatedCost(entry);
-        GeoPosition begin = entry.graph.getWayPoint(entry.connection.getFrom());
-        return  accumulatedCost + MapHelper.distance(begin,entry.destination);
     }
 }

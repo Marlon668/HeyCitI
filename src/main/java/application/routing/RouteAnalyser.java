@@ -6,6 +6,10 @@ import util.Pair;
 
 import java.util.List;
 
+/**
+ * Class used to analyse if a path is eventually better than another path
+ * @author Marlon Saelens
+ */
 public class RouteAnalyser extends Analyser{
 
     private double threshold;

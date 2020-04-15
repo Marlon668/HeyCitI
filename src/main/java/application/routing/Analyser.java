@@ -14,6 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class used for analysing if a path is better than another path
+ * Used in the adaptation algorithm with analysing method
+ * @author Marlon Saelens
+ */
 public abstract class Analyser {
 
 

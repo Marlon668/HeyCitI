@@ -88,7 +88,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
     private JLabel enConLabel;
     private JLabel colBoundLabel;
     private JButton resultsButton;
-    private JButton timedRunButton;
+    private JButton showResultsButton;
     private JPanel resultsPanel;
     private JPanel runPanel;
     private JPanel simulationPanel;
@@ -236,16 +236,13 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         });
 
 
-        timedRunButton.addActionListener(e -> {
-            if (simulationRunner.getSimulation().getInputProfile().isEmpty()) {
-                showNoInputProfileSelectedError();
-                return;
-            }
-
-            this.setEnabledRunButtons(false);
-            simulationRunner.setupTimedRun();
-            this.setConfigurationButtons(false);
-            simulationRunner.simulate(simulationSpeed, this);
+        showResultsButton.addActionListener(e -> {
+            JFrame frame = new JFrame("Select Option");
+            ResultGUI resultGUI = new ResultGUI(simulationRunner);
+            frame.setContentPane(resultGUI.getMainPanel());
+            frame.setMinimumSize(resultGUI.getMainPanel().getMinimumSize());
+            frame.setPreferredSize(resultGUI.getMainPanel().getPreferredSize());
+            frame.setVisible(true);
         });
 
         totalRunButton.addActionListener(e -> {
@@ -370,7 +367,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
     private void setEnabledRunButtons(boolean state) {
         this.singleRunButton.setEnabled(state);
-        this.timedRunButton.setEnabled(state);
+        this.showResultsButton.setEnabled(state);
         this.totalRunButton.setEnabled(state);
         this.multipleRunButton.setEnabled(state);
     }
@@ -653,6 +650,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         public void actionPerformed(ActionEvent e) {
             JFrame frame = new JFrame("Select Mote");
             SelectMoteGUI selectMoteGUI = new SelectMoteGUI(simulationRunner.getEnvironment(), mainGui, frame);
+            simulationRunner.setupApplications();
             frame.setContentPane(selectMoteGUI.getMainPanel());
             frame.setMinimumSize(selectMoteGUI.getMainPanel().getMinimumSize());
             frame.setPreferredSize(selectMoteGUI.getMainPanel().getPreferredSize());
@@ -726,10 +724,12 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             JFrame frame = new JFrame("Select Mote");
             SelectMoteApplicationGUI selectMoteApplicationGUI =
                 new SelectMoteApplicationGUI(simulationRunner.getEnvironment(), mainGui, frame);
+            simulationRunner.setupApplications();
             frame.setContentPane(selectMoteApplicationGUI.getMainPanel());
             frame.setMinimumSize(selectMoteApplicationGUI.getMainPanel().getMinimumSize());
             frame.setPreferredSize(selectMoteApplicationGUI.getMainPanel().getPreferredSize());
             frame.setVisible(true);
+
         }
     }
 
@@ -811,6 +811,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             frame.setMinimumSize(configureGUI.getMainPanel().getMinimumSize());
             frame.setPreferredSize(configureGUI.getMainPanel().getPreferredSize());
             frame.setVisible(true);
+
 
         }
     }
@@ -1110,6 +1111,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             JFrame frame = new JFrame("Mote settings");
             Mote mote = simulationRunner.getEnvironment().getMotes().get(index - 1);
             MoteGUI moteGUI = new MoteGUI(getEnvironment(), mote.getOriginalPosInt(), frame, MainGUI.this, MainGUI.this, mote);
+            simulationRunner.setupApplications();
             frame.setContentPane(moteGUI.getMainPanel());
             frame.setMinimumSize(moteGUI.getMainPanel().getMinimumSize());
             frame.setPreferredSize(moteGUI.getMainPanel().getPreferredSize());
@@ -1610,9 +1612,9 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         toolBarSingleRun.add(singleRunButton);
         final JToolBar.Separator toolBar$Separator18 = new JToolBar.Separator();
         toolBarSingleRun.add(toolBar$Separator18);
-        timedRunButton = new JButton();
-        timedRunButton.setText("Timed Run");
-        toolBarSingleRun.add(timedRunButton);
+        showResultsButton = new JButton();
+        showResultsButton.setText("Timed Run");
+        toolBarSingleRun.add(showResultsButton);
         final JToolBar.Separator toolBar$Separator19 = new JToolBar.Separator();
         toolBarSingleRun.add(toolBar$Separator19);
         final JLabel label22 = new JLabel();
