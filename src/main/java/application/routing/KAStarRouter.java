@@ -143,6 +143,13 @@ public class KAStarRouter implements PathFinder {
         }
     }
 
+    /**
+     * Function to decide path already contains the reversed connection
+     * @param connections list of connections
+     * @param connectionId connectionId to be checked if path doesn't contain this connection already
+     * @param graph graph used to translate connectionId to connection
+     * @return true if path already contains the connection, false otherwise
+     */
     private boolean containsWaypoints(List<Long> connections,Long connectionId,GraphStructure graph)
     {
         for(Long conn: connections)
@@ -156,11 +163,15 @@ public class KAStarRouter implements PathFinder {
     }
 
     /**
-     * Function to delete two same consecutively connections
-     * @param connections a list containing connectionId's of connections
-     * @param visitedConnections a set of already visited connections
-     * @param amountConnectionsUsed the amount of connections used in the
-     * @param graph graph used to translate connedtionId's in connections
+     * Function for resetting the visitedConnections for searching the next best path
+     * We decrease the amount of paths that used that waypoint in the hashmap amountconnections used,
+     * till we remove a waypoint (amount of paths that uses this waypoint = 0). Then we set markers to
+     * the waypoints located above in the path tree
+     * @param connections deleted path
+     * @param visitedConnections set of already visited connections that must be updated to allow multiple
+     *                           best paths
+     * @param amountConnectionsUsed hashmap used to update the visited Connections
+     * @param graph graph that we are working in
      */
     private void DeleteConnectionsInGraph(List<Long> connections, Set<Long> visitedConnections,HashMap<Long,Pair<Integer,HashSet<Long>>> amountConnectionsUsed,GraphStructure graph) {
         long waypointFree = 0;
@@ -190,6 +201,15 @@ public class KAStarRouter implements PathFinder {
             }
     }
 
+    /**
+     * Function for marking connections above the search tree that there is be one path re-availbale to the goal
+     * Used in the deletion process
+     * @param graph graph that we are working at
+     * @param amountConnectionsUsed in this hashmap we must set for the waypoints above the deleted waypoint
+     *                              a marker that there is a path till the deleted waypoint is re-available
+     * @param connections the deletd path
+     * @param i : from which waypoints may we start setting markers, starting from the end of the list
+     */
     private void setFreeWaypointParent(GraphStructure graph, HashMap<Long, Pair<Integer, HashSet<Long>>> amountConnectionsUsed, List<Long> connections, int i) {
         for (int j = i;j>=0;j--){
             long waypointId = graph.getConnection(connections.get(j)).getFrom();

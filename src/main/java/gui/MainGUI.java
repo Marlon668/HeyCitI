@@ -203,7 +203,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             this.setEnabledRunButtons(false);
             synchronized (simulationRunner) {
                 simulationRunner.setupSingleRun();
-                if (simulationRunner.getSimulation().getApproach()!= null && simulationRunner.getSimulation().getApproach().getName() == "Air Quality") {
+                if (simulationRunner.getSimulation().getApproach() != null && simulationRunner.getSimulation().getApproach().getName() == "Air Quality") {
                     if (!(simulationRunner.getParameters().getSetupFirst() == 1)) {
                         if (!(simulationRunner.getParameters().getSetupFirst() == 2)) {
                             simulationRunner.simulate(simulationSpeed, this);
@@ -213,8 +213,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
                     } else {
                         simulationRunner.simulateCalculatedRun(simulationSpeed, this);
                     }
-                }
-                else{
+                } else {
                     simulationRunner.simulate(simulationSpeed, this);
                 }
             }
@@ -225,7 +224,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
             if (simulationRunner.getSimulation().getInputProfile().isEmpty()) {
                 showNoInputProfileSelectedError();
                 return;
-           }
+            }
 
             this.setEnabledRunButtons(false);
             synchronized (simulationRunner) {
@@ -315,6 +314,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
     /**
      * Update the progress bar of a total run.
+     *
      * @param progress The progress so far (left: current index, right: total amount of runs).
      */
     private void setProgressTotalRun(Pair<Integer, Integer> progress) {
@@ -393,6 +393,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
     /**
      * Update the legend next to the map with entries of gateways and motes.
+     *
      * @param environment The environment in which the gateways/motes are located.
      */
     private void updateEntries(Environment environment) {
@@ -509,6 +510,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
     /**
      * Load the open street map, together with all the painters for motes/gateways/...
+     *
      * @param refresh If false, initialize the map viewer to the center of the map with a default zoom level.
      */
     private void loadMap(boolean refresh) {
@@ -522,6 +524,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         if (Objects.requireNonNull(environmentChoice.getSelectedItem()).toString().equals("Pollution sources view")) {
             mapViewer.setOverlayPainter(new CompoundPainterBuilder()
                 .withEnvironmentAPI(environment, simulationRunner.getEnvironmentAPI())
+                .withSensors(environment, simulationRunner.getEnvironmentAPI())
                 .withSources(environment, simulationRunner.getEnvironmentAPI())
                 .withMotes(environment)
                 .withRoutingPath(environment, simulationRunner.getRoutingApplication())
@@ -530,16 +533,16 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
                 .withGateways(environment)
                 .build()
             );
-        }
-        else{mapViewer.setOverlayPainter(new CompoundPainterBuilder()
-            .withEnvironmentAPISensor(environment, simulationRunner.getEnvironmentAPI())
-            .withRoutingPath(environment, simulationRunner.getRoutingApplication())
-            .withMotePaths(environment, simulationRunner.getSimulation().getApproach())
-            .withMotes(environment)
-            .withGateways(environment)
-            .withSensors(environment, simulationRunner.getEnvironmentAPI())
-            .build()
-        );
+        } else {
+            mapViewer.setOverlayPainter(new CompoundPainterBuilder()
+                .withEnvironmentAPISensor(environment, simulationRunner.getEnvironmentAPI())
+                .withRoutingPath(environment, simulationRunner.getRoutingApplication())
+                .withMotePaths(environment, simulationRunner.getSimulation().getApproach())
+                .withMotes(environment)
+                .withGateways(environment)
+                .withSensors(environment, simulationRunner.getEnvironmentAPI())
+                .build()
+            );
         }
         map.add(mapViewer);
 
@@ -575,6 +578,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
     /**
      * Sets the graphs of the corresponding characteristics of a given mote of a given run.
+     *
      * @param moteIndex The index of the mote.
      * @param run       The number of the run.
      */
@@ -899,10 +903,10 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
 
                 frame.setTitle("Edit parameters");
-                System.out.println(simulationRunner.getParameters()==null);
+                System.out.println(simulationRunner.getParameters() == null);
 
                 editParameters editParameters =
-                    new editParameters(simulationRunner.getParameters(),simulationRunner);
+                    new editParameters(simulationRunner.getParameters(), simulationRunner);
                 frame.setContentPane(editParameters.getMainPanel());
                 frame.setMinimumSize(editParameters.getMainPanel().getMinimumSize());
                 frame.setPreferredSize(editParameters.getMainPanel().getPreferredSize());
@@ -1579,7 +1583,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         final JToolBar.Separator toolBar$Separator14 = new JToolBar.Separator();
         toolBarAdaptation.add(toolBar$Separator14);
         final JPanel panel10 = new JPanel();
-        panel10.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), 0, 0));
+        panel10.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), 0, 0));
         toolBarAdaptation.add(panel10);
         toolBarMultiRun = new JToolBar();
         toolBarMultiRun.setFloatable(false);
@@ -1607,16 +1611,17 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         toolBarSingleRun = new JToolBar();
         toolBarSingleRun.setFloatable(false);
         panel10.add(toolBarSingleRun, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
+        editButton = new JButton();
+        editButton.setText("Edit");
+        toolBarSingleRun.add(editButton);
         singleRunButton = new JButton();
         singleRunButton.setText("Single Run");
         toolBarSingleRun.add(singleRunButton);
+        multipleRunButton = new JButton();
+        multipleRunButton.setText("Multiple Run");
+        toolBarSingleRun.add(multipleRunButton);
         final JToolBar.Separator toolBar$Separator18 = new JToolBar.Separator();
         toolBarSingleRun.add(toolBar$Separator18);
-        showResultsButton = new JButton();
-        showResultsButton.setText("Timed Run");
-        toolBarSingleRun.add(showResultsButton);
-        final JToolBar.Separator toolBar$Separator19 = new JToolBar.Separator();
-        toolBarSingleRun.add(toolBar$Separator19);
         final JLabel label22 = new JLabel();
         label22.setText("Speed:");
         toolBarSingleRun.add(label22);
@@ -1630,8 +1635,11 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         speedSlider.setValue(1);
         speedSlider.setValueIsAdjusting(false);
         toolBarSingleRun.add(speedSlider);
-        final JToolBar.Separator toolBar$Separator20 = new JToolBar.Separator();
-        toolBarSingleRun.add(toolBar$Separator20);
+        final JToolBar.Separator toolBar$Separator19 = new JToolBar.Separator();
+        toolBarSingleRun.add(toolBar$Separator19);
+        showResultsButton = new JButton();
+        showResultsButton.setText("Show Results");
+        panel10.add(showResultsButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
     }
 
     /**

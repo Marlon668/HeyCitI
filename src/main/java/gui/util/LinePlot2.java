@@ -2,16 +2,14 @@ package gui.util;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -19,21 +17,33 @@ import com.orsonpdf.PDFDocument;
 import com.orsonpdf.PDFGraphics2D;
 import com.orsonpdf.Page;
 import gui.MainGUI;
-import iot.Result;
 import iot.networkentity.Mote;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.*;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.title.Title;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.text.TextUtilities;
+import org.jfree.ui.HorizontalAlignment;
+import org.jfree.ui.RectangleAnchor;
+import org.jfree.ui.RectangleEdge;
+import org.jfree.ui.TextAnchor;
 import util.Pair;
 
-
+/**
+ * Class for representing a line graphic for visualising the utility for using an adaptation method
+ * for following the best path
+ */
 public class LinePlot2 extends JFrame {
     public LinePlot2 (String var1, HashMap<Mote, List<Pair<Double,Double>>> visualiseRun,HashMap<Mote,List<Double>> adaptationPoints,HashMap<Mote,List<Pair<Pair<Double,Double>,Pair<Double,Double>>>> alternativeRoutes, ArrayList<Mote> motes, int index) {
         super(var1);
@@ -107,46 +117,72 @@ public class LinePlot2 extends JFrame {
         return panel;
     }
 
+    /**
+     * Translate data in a dataset to show the utility of using an adaptation method
+     * @param visualiseRun hashmap containing information what the expected air-quality would be if we
+     *                     don't change the path
+     * @param adaptationPoints hashmap containing information on which distance we had done an
+     *                         adaptation
+     * @param motes arraylist containing every mote of the configuration
+     * @param index of which mote must we show a window containing boxplots to respresent its data
+     */
     private static XYDataset createDataset(HashMap<Mote, List<Pair<Double,Double>>> visualiseRun,HashMap<Mote,List<Double>>adaptationPoints,HashMap<Mote,List<Pair<Pair<Double,Double>,Pair<Double,Double>>>> alternativeRoutes, ArrayList<Mote> motes, int index) {
             Mote mote = motes.get(index);
             XYSeriesCollection dataset = new XYSeriesCollection();
             List<Pair<Double,Double>> resultsMote = visualiseRun.get(mote);
-            XYSeries series1 = new XYSeries("Path");
+            XYSeries series1 = new XYSeries("WayPoints");
             for (Pair<Double,Double> moteEntry2 : resultsMote) {
                 series1.add(moteEntry2.getRight(),moteEntry2.getLeft());
             }
             dataset.addSeries(series1);
             List<Double>adaptation= adaptationPoints.get(mote);
-            int i = 0;
+            int i = 2;
             for(double adaptationPoint : adaptation){
-                series1 = new XYSeries(i);
-                series1.add(adaptationPoint,0.0);
-                series1.add(adaptationPoint,5.0);
+                series1 = new XYSeries("Adaptation " + i);
+                for(Pair<Pair<Double,Double>,Pair<Double,Double>> adaptationPoint2 : alternativeRoutes.get(mote)) {
+                    if(adaptationPoint2.getRight().getRight()==adaptationPoint){
+                        System.out.println("ok");
+                        series1.add(adaptationPoint2.getLeft().getRight(),adaptationPoint2.getLeft().getLeft());
+                        series1.add(adaptationPoint2.getRight().getRight(),adaptationPoint2.getRight().getLeft());
+                    }
+                }
+                series1.add(adaptationPoint,-5.0);
+                series1.add(adaptationPoint,8.0);
                 dataset.addSeries(series1);
                 i++;
             }
-            int j = 1000;
-            for(Pair<Pair<Double,Double>,Pair<Double,Double>> adaptationPoint : alternativeRoutes.get(mote)) {
-                series1 = new XYSeries(j);
-                series1.add(adaptationPoint.getLeft().getRight(),adaptationPoint.getLeft().getLeft());
-                series1.add(adaptationPoint.getRight().getRight(),adaptationPoint.getRight().getLeft());
-                dataset.addSeries(series1);
-                j++;
-            }
             return dataset;
-        }
+
+    }
+
 
     private static JFreeChart createChart(XYDataset var0, ArrayList<Mote> motes, int index) {
-        JFreeChart var1 = ChartFactory.createXYLineChart("Mote : " + motes.get(index).getEUI(), "Distance (meter)", "Air Quality", var0, PlotOrientation.VERTICAL, false, true, false);
+        JFreeChart var1 = ChartFactory.createXYLineChart("Mote : " + motes.get(index).getEUI(), "Distance (meter)", "Air Quality", var0, PlotOrientation.VERTICAL, true, true, false);
         XYPlot var2 = (XYPlot) var1.getPlot();
+        Font font3 = new Font("Arial", Font.PLAIN, 18);
+        var2.getDomainAxis().setLabelFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 25);
+        var1.getTitle().setFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 18);
+        var2.getRangeAxis().setLabelFont(font3);
         var2.setDomainPannable(true);
         var2.setRangePannable(true);
         var2.setDomainZeroBaselineVisible(true);
         var2.setRangeZeroBaselineVisible(true);
         XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
-        var3.setDefaultShapesVisible(true);
-        var3.setDefaultShapesFilled(true);
-
+        var3.setBaseShapesVisible(true);
+        var3.setBaseShapesFilled(true);
+        LegendTitle legend = var1.getLegend();
+        Font labelFont = new Font("Arial", Font.BOLD, 16);
+        legend.setItemFont(labelFont);
+        var2.getRangeAxis().setRange(0.0,5.0);
+        XYTextAnnotation annotation = new XYTextAnnotation("Air quality improvement compared to shortest path: 86,5%", 2220, 4);
+        XYTextAnnotation annotatio2 = new XYTextAnnotation("Extra distance travelled compared to shortest path: 1917 meters", 2300, 4.3);
+        var1.addSubtitle(new TextTitle("Height: 2 , Width: 2",font3));
+        annotation.setFont(new Font("Arial", Font.BOLD, 20));
+        annotatio2.setFont(new Font("Arial", Font.BOLD, 20));
+        var2.addAnnotation(annotation);
+        var2.addAnnotation(annotatio2);
         var3.setDrawOutlines(true);
         NumberAxis var4 = (NumberAxis) var2.getRangeAxis();
         var4.setStandardTickUnits(NumberAxis.createIntegerTickUnits());

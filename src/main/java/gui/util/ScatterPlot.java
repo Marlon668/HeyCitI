@@ -24,6 +24,10 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+/**
+ * Class for representing a scatter plot to show the relationship between air-quality and distance for
+ * certain paths
+ */
 public class ScatterPlot extends JFrame {
     public ScatterPlot(String var1,HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results) {
         super(var1);
@@ -48,6 +52,11 @@ public class ScatterPlot extends JFrame {
         return var1;
     }
 
+    /**
+     * Translate data in a dataset to plot the boxplots and create a panel to visualise the data in a scatterplot
+     * @param results a hashmap containing information about the air quality and a hashmap for different
+     *                runs with different parameters (width,height) for a certain configurations
+     */
     public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (Map.Entry<Mote,HashMap<Integer, HashMap<Integer, Result>>> moteEntry : results.entrySet()) {

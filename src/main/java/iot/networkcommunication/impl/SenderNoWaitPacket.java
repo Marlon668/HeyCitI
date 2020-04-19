@@ -45,7 +45,7 @@ public class SenderNoWaitPacket implements Sender {
             throw new IllegalArgumentException("Payload size greater then the max size. Payload size: " + payloadSize + ", " +
                 "but max size allowed with this regional parameter is: " + regionalParameter.getMaximumPayloadSize());
         }
-        var timeOnAir = computeTimeOnAir(packet);
+        var timeOnAir = computeTimeOnAir(packet)/2;
         var stream = receivers.stream()
             .map(r -> new Pair<>(r,
                 new LoraTransmission(sender.getEUI(), r.getID(), sender.getPosInt(), moveTo(r.getReceiverPositionAsInt(), transmissionPower),

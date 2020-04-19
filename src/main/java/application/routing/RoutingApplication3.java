@@ -182,6 +182,10 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                         bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
                     }
                 }
+                else{
+                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                }
                 this.routes.put(mote.getEUI(), bestPath);
             }
             else {
@@ -336,6 +340,7 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                     if (!(bestPath.getRight().equals(path))&&pathAnalyser.hasChangedEnough(this.routes.get(mote.getEUI()))) {
                         int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
                         getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                        bestPath.getRight().remove(0);
                         changedPath = Stream.concat(mote.getPath().getWayPoints().stream(), bestPath.getRight().stream()).collect(Collectors.toList());
                         send = true;
                     }
@@ -355,7 +360,13 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                             }
                         }
                         bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
+                        bestPath.getRight().remove(0);
                     }
+                }
+                else{
+                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                    bestPath.getRight().remove(0);
                 }
                 this.routes.put(mote.getEUI(), bestPath);
             }
@@ -375,6 +386,7 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                     }
                 }
                 bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
+                bestPath.getRight().remove(0);
                 this.routes.put(mote.getEUI(), bestPath);
             }
         } else {
@@ -382,6 +394,7 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                 bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
                 this.routes.put(mote.getEUI(), bestPath);
                 bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                bestPath.getRight().remove(0);
                 this.routes.put(mote.getEUI(), bestPath);
                 changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
                 send = true;
@@ -402,14 +415,14 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
                 }
                 bestPath = new Pair(newAccumulatedCost,this.routes.get(mote.getEUI()).getRight());
                 if (bestPath.getRight().size() > 1) {
+                    bestPath.getRight().remove(0);
                     this.routes.put(mote.getEUI(), bestPath);
                 }
             }
         }
         Path motePath = mote.getPath();
-        motePath.addPosition(bestPath.getRight().get(1));
+        motePath.addPosition(bestPath.getRight().get(0));
         mote.setPath(motePath.getWayPoints());
-        this.routes.get(mote.getEUI()).getRight().remove(0);
         if(send){
             return changedPath;
         }

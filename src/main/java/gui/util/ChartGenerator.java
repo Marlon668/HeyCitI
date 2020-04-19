@@ -20,7 +20,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
-import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.ui.RectangleEdge;
 import org.jfree.data.xy.*;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.input.CenterMapListener;

@@ -35,6 +35,11 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Consumer;
 
+/**
+ * Class used for running a simulation
+ * @author Marlon Saelens
+ */
+
 public class SimulationRunner {
     private static SimulationRunner instance = null;
 
@@ -58,6 +63,7 @@ public class SimulationRunner {
     private int amountRuns;
     private boolean multipleRun;
     private boolean couldLoadPollutionFile;
+    // Results for visualising experiments
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,Result>>> results;
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> resultsBoxPlotAirQuality;
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> resultsBoxPlotAdaptations;
@@ -133,6 +139,10 @@ public class SimulationRunner {
         return instance;
     }
 
+    /**
+     * Initialise a simulationRunner with certain parameters derived from a file
+     * @param parameterfile the file to derive the parameters from
+     */
     private SimulationRunner(File parameterfile) {
         this.multipleRun = false;
         QoS = new QualityOfService(new HashMap<>());
@@ -380,7 +390,9 @@ public class SimulationRunner {
     public void setupSingleRun() {
         this.setupSingleRun(true);
         // - Remove previous pollution measurements
+        // destruct the earlier routing application
         this.routingApplication.destruct();
+        // setting routing application dependent on the selected approach
         if(simulation.getApproach()!= null && simulation.getApproach().getName()=="Air Quality") {
             switch (parameters.getAnalysingMethod()) {
                 case 0:
@@ -427,6 +439,12 @@ public class SimulationRunner {
         this.setupSimulationRunner();
     }
 
+    /**
+     * Function for doing multiple runs after each other for getting a result about the average time
+     * and worste time of doing a decision wether or not change the path
+     * @param updateFrequency the frequency to visually update the path
+     * @param listener listener used to update the visibility of the mote
+     */
     public void multipleRun(MutableInteger updateFrequency, SimulationUpdateListener listener) {
         this.amountRuns = getParameters().getAmountRuns();
         this.multipleRun = true;
@@ -434,10 +452,18 @@ public class SimulationRunner {
         this.listener = listener;
         HashMap<Mote,Pair<Double,Integer>> result = new HashMap<>();
         multipleRun(this.timeResults,result);
-
-
     }
 
+    /**
+     * Function used for getting data for plotting a graphic to show the relationship between the
+     * parameters of the adaptation method and the air quality/number of adaptations
+     * @param minimumBufferSizeHeight buffersize height to start the iteration
+     * @param maximumBufferSizeHeight buffersize height to stop the iteration
+     * @param minimumBufferSizeWidth buffersize width to start the iteration
+     * @param maximumBufferSizeWidth buffersiz width to end the iteration
+     * For example minHeight:1,maxHeight2,minWidth:1,maxWidth:2, will gather information for height 1
+     * width 1, height 1 width 2, height 2 width 1 and height 2 width 2
+     */
     public void resultRun(int minimumBufferSizeHeight, int maximumBufferSizeHeight, int minimumBufferSizeWidth, int maximumBufferSizeWidth){
         results = new HashMap<>();
         int currenctBufferSizeHeight = minimumBufferSizeHeight;
@@ -449,7 +475,9 @@ public class SimulationRunner {
         simulation.setApproach(algorithms.get(0));
         simulation.setAdaptationAlgorithm(algorithms.get(0));
         System.out.println(simulation.getApproach().getName());
-        setupSingleRun(true);
+        setupSingleRun();
+        simulation.setupSingleRun(true);
+        setupSimulationRunner();
         simulateCalculatedRunForResult();
         for(Mote mote : environment.getMotes()) {
             if (mote instanceof UserMote) {
@@ -524,6 +552,12 @@ public class SimulationRunner {
 
     }
 
+    /**
+     * Function to gather information for visualising the utility of using an adpation method for
+     * following the best path for one run with specific parameters
+     * @param bufferSizeWidth buffersize Width used in the simulation
+     * @param bufferSizeHeight buffersize height used in the simulation
+     */
     public void visualiseRun(int bufferSizeWidth,int bufferSizeHeight){
         this.getParameters().setBufferSizeHeight(bufferSizeHeight);
         this.getParameters().setBuffersizeWidth(bufferSizeWidth);
@@ -545,24 +579,25 @@ public class SimulationRunner {
         }
         simulation.initialiseMote();
         simulation.setupSingleRun(true);
-        simulateCalculatedRunForResult();
+        simulateVisualiseRun();
         visualiseRun = routingApplication.getVisualiseRun();
         adaptationPoints = routingApplication.getAdaptationPoints();
         alternativeRoute = routingApplication.getAlternativeRoute();
-        environment.getMotes().forEach(mote->{
-            if(mote instanceof UserMote){
-                System.out.println("Size visualise: " + visualiseRun.get(mote).size());
-                System.out.println("Amount adaptations: " + adaptationPoints.get(mote).size());
-                System.out.println("Amount adaptations2: " + alternativeRoute.get(mote).size());
-            }
-        });
-
     }
-    public void resultRunBoxPlot(int amountRuns, int minimumBufferSizeHeight, int maximumBufferSizeHeight, int minimumBufferSizeWidth, int maximumBufferSizeWidth){
+
+    /**
+     * Function for gathering information for multiple runs for some specific parameters used for
+     * visualising them via a boxplot
+     * @param amountRuns the amount of runs per parameter selection
+     * @param configurationList the list of parameters to gather the information from
+     */
+    public void resultRunBoxPlot(int amountRuns, List<Pair<Integer,Integer>> configurationList){
         resultsBoxPlotAirQuality = new HashMap<>();
         resultsBoxPlotAdaptations = new HashMap<>();
-        int currenctBufferSizeHeight = minimumBufferSizeHeight;
-        int currentBufferSizeWidth = minimumBufferSizeWidth;
+        Pair<Integer,Integer> firstConfiguration = configurationList.get(0);
+        int currenctBufferSizeHeight = firstConfiguration.getLeft();
+        int currentBufferSizeWidth = firstConfiguration.getRight();
+        configurationList.remove(0);
         this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
         this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
         this.getParameters().setSetupFirst(1);
@@ -578,7 +613,9 @@ public class SimulationRunner {
             }
         }
         while(experiment<= amountRuns) {
-            setupMultipleRun(true);
+            setupSingleRun();
+            simulation.setupSingleRun(true);
+            setupSimulationRunner();
             simulateCalculatedRunForResult();
             for (Mote mote : environment.getMotes()) {
                 if (mote instanceof UserMote) {
@@ -616,19 +653,13 @@ public class SimulationRunner {
             resultsBoxPlotAirQuality.put(moteEntry.getKey(),results1a);
             resultsBoxPlotAdaptations.put(moteEntry.getKey(),results1b);
         }
-        System.out.println("Hight : " + currenctBufferSizeHeight);
-        System.out.println("Width : " + currentBufferSizeWidth);
-        while(!(currenctBufferSizeHeight == maximumBufferSizeHeight && currentBufferSizeWidth == maximumBufferSizeWidth)){
-            if(currentBufferSizeWidth!= maximumBufferSizeWidth){
-                currentBufferSizeWidth +=1;
-                this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
-            }
-            else{
-                currenctBufferSizeHeight += 1;
-                currentBufferSizeWidth = minimumBufferSizeWidth;
-                this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
-                this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
-            }
+        while(!(configurationList.isEmpty())){
+            Pair<Integer,Integer> nextConfiguration = configurationList.get(0);
+            currenctBufferSizeHeight = nextConfiguration.getLeft();
+            currentBufferSizeWidth = nextConfiguration.getRight();
+            configurationList.remove(0);
+            this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
+            this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
             resultSaver1 = new HashMap<>();
             resultSaver2 = new HashMap<>();
             experiment = 1;
@@ -691,6 +722,15 @@ public class SimulationRunner {
 
     }
 
+    /**
+     * Function used for initialising the next run in the multiple run option
+     * @param time timeresults of the earlier runs
+     * @param result results about air-quality and amount of adaptations to show if
+     *               we have done a certain amount of runs. These results have not to be updated because
+     *               the air quality for multiple runs without noise is almost the same. For doing
+     *               multiple runs with noise, there is an experimental option to do multiple runs
+     *               after each other and visualise the results by a boxplot
+     */
     public void multipleRun(HashMap<Mote, Pair<Long,Long>> time,HashMap<Mote,Pair<Double,Integer>> result){
         if(amountRuns != 0) {
                 setupMultipleRun(true);
@@ -741,16 +781,6 @@ public class SimulationRunner {
     }
 
     /**
-     * Set the simulator up for a single timed run.
-     */
-    public void setupTimedRun() {
-        simulation.setupTimedRun();
-
-        this.setupSimulationRunner();
-    }
-
-
-    /**
      * Setup of applications/servers/clients before each run.
      */
     public void setupSimulationRunner() {
@@ -794,11 +824,23 @@ public class SimulationRunner {
      *
      **/
     public synchronized void simulateCalculatedRunForResult() {
-            while (!simulation.RunIsFinishedForResults()) {
-                simulation.simulateVisualiseRun(getEnvironmentAPI().getPoll());
-            }
-
+        while (!simulation.RunIsFinishedForResults()) {
+            simulation.simulateStepRun(getEnvironmentAPI().getPoll());
+        }
     }
+
+    /**
+     * Simulate a whole run, until the simulation is finished.
+     * Result of the run is not visible
+     * Used for making the utility of adaptation visible
+     */
+    public synchronized void simulateVisualiseRun() {
+        while (!simulation.RunIsFinishedForResults()) {
+            simulation.simulateVisualiseRun(getEnvironmentAPI().getPoll());
+        }
+    }
+
+
 
     /**
      * Simulate a whole run, until the simulation is finished.

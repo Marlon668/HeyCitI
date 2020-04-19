@@ -205,8 +205,6 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                         this.routes.put(mote.getEUI(), bestPath);
                     }
                     else{
-                        List<Pair<Double,Double>> visualisedResults = visualiseRun.get(mote);
-                        Pair<Double,Double> lastPoint = visualisedResults.get(visualisedResults.size()-1);
                         double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
                         Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
                         visualiseRun.get(mote).add(newResult);
@@ -223,11 +221,9 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                     double distanceLastMote = MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
                     distances.put(mote,distanceLastMote);
                     List<Double> airValues = new ArrayList<>();
-                    airValues.add(0.0);
                     adaptationPoints.put(mote,airValues);
                     List<Pair<Double,Double>> airQuality = new ArrayList<>();
                     Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
-                    airQuality.add(resultsFinal);
                     visualiseRun.put(mote,airQuality);
                     this.routes.put(mote.getEUI(),bestPath);
                     double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
@@ -257,12 +253,10 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
                 double distanceLastMote = MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
                 List<Double> airValues = new ArrayList<>();
-                airValues.add(0.0);
                 adaptationPoints.put(mote,airValues);
                 List<Pair<Double,Double>> airQuality = new ArrayList<>();
                 Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
                 distances.put(mote,distanceLastMote);
-                airQuality.add(resultsFinal);
                 visualiseRun.put(mote,airQuality);
                 this.routes.put(mote.getEUI(),bestPath);
                 double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
@@ -270,8 +264,6 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 alternativeRoute.put(mote,new ArrayList<>());
             } else {
                 bestPath = this.routes.get(mote.getEUI());
-                List<Pair<Double,Double>> visualisedResults = visualiseRun.get(mote);
-                Pair<Double,Double> lastPoint = visualisedResults.get(visualisedResults.size()-1);
                 double distance = distances.get(mote) + MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
                 double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
                 Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
@@ -315,6 +307,10 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
 
                         }
                     }
+                    else{
+                        int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                        getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                    }
                     this.routes.put(mote.getEUI(), bestPath);
                 }
                 else {
@@ -323,6 +319,8 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 }
             } else {
                 if (routes.get(mote.getEUI()) == null) {
+                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
                     bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
                     this.routes.put(mote.getEUI(), bestPath);
                 } else {
@@ -428,12 +426,19 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                     if (!(bestPath.getRight().equals(path))) {
                         int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
                         getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                        bestPath.getRight().remove(0);
                         changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
                         send = true;
                     }
+                    else{
+                        bestPath.getRight().remove(0);
+                    }
                 }
                 else{
-                   changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
+                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                    bestPath.getRight().remove(0);
+                    changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
                     send = true;
                 }
                 this.routes.put(mote.getEUI(), bestPath);
@@ -442,25 +447,31 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
             }
             else {
                 bestPath = this.routes.get(mote.getEUI());
+                bestPath.getRight().remove(0);
                 this.routes.put(mote.getEUI(), bestPath);
             }
         } else {
             if (routes.get(mote.getEUI()) == null) {
+                int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
                 bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                bestPath.getRight().remove(0);
                 this.routes.put(mote.getEUI(), bestPath);
                 changedPath = Stream.concat(mote.getPath().getWayPoints().stream(),bestPath.getRight().stream()).collect(Collectors.toList());
                 send = true;
             } else {
                 bestPath = this.routes.get(mote.getEUI());
                 if (bestPath.getRight().size() > 1) {
+                    bestPath.getRight().remove(0);
                     this.routes.put(mote.getEUI(), bestPath);
                 }
             }
         }
         Path motePath = mote.getPath();
-        motePath.addPosition(bestPath.getRight().get(1));
+        System.out.println(bestPath.getRight().get(0));
+        motePath.addPosition(bestPath.getRight().get(0));
         mote.setPath(motePath.getWayPoints());
-        this.routes.get(mote.getEUI()).getRight().remove(0);
+        //this.routes.get(mote.getEUI()).getRight().remove(0);
         if(send){
             return changedPath;
         }
@@ -536,6 +547,10 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                         getAmountAdaptations().put(deviceEUI,amountAdaptations);
                     }
                 }
+                else{
+                    int amountAdaptations = getAmountAdaptations().get(deviceEUI) + 1;
+                    getAmountAdaptations().put(deviceEUI, amountAdaptations);
+                }
                 this.routes.put(deviceEUI, bestPath);
             }
             else {
@@ -545,6 +560,8 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
         }
         else {
             if (routes.get(deviceEUI) == null) {
+                int amountAdaptations = getAmountAdaptations().get(deviceEUI) + 1;
+                getAmountAdaptations().put(deviceEUI, amountAdaptations);
                 bestPath = this.pathFinder.retrievePath(graph,motePosition, destinationPosition);
                 this.routes.put(deviceEUI, bestPath);
             } else {

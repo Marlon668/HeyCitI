@@ -3,7 +3,6 @@ package gui.util;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -13,41 +12,63 @@ import com.orsonpdf.PDFDocument;
 import com.orsonpdf.PDFGraphics2D;
 import com.orsonpdf.Page;
 import gui.MainGUI;
-import iot.Environment;
-import iot.Result;
 import iot.networkentity.Mote;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.BoxAndWhiskerToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
-/** @see //stackoverflow.com/questions/6844759 */
+/**
+ * Class used for plotting a box plot
+ */
 public class Boxplot {
 
-    private int COLS;
-    private int VISIBLE;
-    private int ROWS;
-    private int VALUES;
-    private static final Random rnd = new Random();
-    private int index;
-    private List<String> columns;
-    private List<List<List<Double>>> data;
     private DefaultBoxAndWhiskerCategoryDataset dataset;
     private CategoryPlot plot;
     private ChartPanel chartPanel;
     private JPanel controlPanel;
-    private int start = 0;
+    private List<String> legend;
+    private final List<Color> clut = new ArrayList<Color>();
+    private List<Double> resultsNoAdaptation = new ArrayList<>();
+
+
+    private void initClut() {
+        clut.add(Color.red);
+        clut.add(Color.blue);
+        clut.add(Color.green);
+        clut.add(Color.yellow);
+        clut.add(Color.orange);
+        clut.add(Color.cyan);
+        clut.add(Color.magenta);
+        clut.add(Color.blue);
+        resultsNoAdaptation.add(1.0195818558690959);
+        resultsNoAdaptation.add(1.7699003574909553);
+        resultsNoAdaptation.add(2.223919997254173);
+    }
 
     public Boxplot(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data) {
+        initClut();
         createDataset(airQuality,adaptations,motes,index,data);
         createChartPanel(motes,index,data);
         createControlPanel(airQuality,adaptations,motes,index,data);
     }
 
+    /**
+     * Translate data in a dataset to plot the boxplots
+     * @param airQuality hashmap containing data about the air quality for every mote for an amount of runs for the same configuration
+     * @param adaptations hashmap containing data about the amount of adaptations made for every mote for an amount of runs for the same configuration
+     * @param motes arraylist containing every mote of the configuration
+     * @param index of which mote must we show a window containing boxplots to respresent its data
+     * @param data 0 = showing air qualtiy, 1 = showing amount of adaptations
+     */
     private void createDataset(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes,int index,int data) {
+        legend = new ArrayList<>();
         if(data==0){
             Mote mote = motes.get(index);
             dataset = new DefaultBoxAndWhiskerCategoryDataset();
@@ -55,8 +76,16 @@ public class Boxplot {
             for (Map.Entry<Integer, HashMap<Integer, List<Double>>> moteEntry : resultsMote.entrySet()) {
                 for (Map.Entry<Integer,List<Double>> moteEntry3 : moteEntry.getValue().entrySet()) {
                     List<Double> finalResults = moteEntry3.getValue();
-                    dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
+                    List<Double> resultsRelativeToNoAdaptation = new ArrayList<>();
+                    for(double result : finalResults){
+                        double newResult = result/resultsNoAdaptation.get(index);
+                        resultsRelativeToNoAdaptation.add(newResult);
+                    }
+                    //dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
+                    dataset.add(resultsRelativeToNoAdaptation,"" ,moteEntry.getKey());
                     System.out.println(finalResults.size());
+                    legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
+
                 }
             }
         }
@@ -67,8 +96,10 @@ public class Boxplot {
             for (Map.Entry<Integer, HashMap<Integer, List<Integer>>> moteEntry : resultsMote.entrySet()) {
                 for (Map.Entry<Integer,List<Integer>> moteEntry3 : moteEntry.getValue().entrySet()) {
                     List<Integer> finalResults = moteEntry3.getValue();
-                    dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
+                    //dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
+                    dataset.add(finalResults, "",moteEntry.getKey());
                     System.out.println(finalResults.size());
+                    legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
                 }
             }
         }
@@ -83,17 +114,33 @@ public class Boxplot {
             yAxis = new NumberAxis("Air-Quality");
         }
         else{
-            yAxis = new NumberAxis("Amount adaptations");
+            yAxis = new NumberAxis("Number of  adaptations");
         }
-        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
-        renderer.setMaximumBarWidth(0.05);
+        CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer(legend);
+        System.out.println(dataset.getMeanValue(0,0));
+        renderer.setOutlierRadius(15.0);
+        renderer.setFillBox(true);
+        renderer.setUseOutlinePaintForWhiskers(true);
+        yAxis.setAutoRangeIncludesZero(false);
+        renderer.setSeriesToolTipGenerator(1, new BoxAndWhiskerToolTipGenerator());
+        renderer.setMedianVisible(true);
+        renderer.setMeanVisible(true);
         System.out.println("Size : " + dataset.getColumnKeys().size());
         plot = new CategoryPlot(dataset, xAxis, yAxis, renderer);
         plot.getDomainAxis(0).setVisible(false);
+        plot.setDrawingSupplier(new ChartDrawingSupplier());
+        LegendItemCollection legendList = new LegendItemCollection();
+
+        for(int i=0;i<legend.size();i++){
+            LegendItem newLegend = new LegendItem(legend.get(i),clut.get(i));
+            legendList.add(newLegend);
+        }
+        plot.setFixedLegendItems(legendList);
         JFreeChart chart = new JFreeChart("Mote : " + motes.get(index).getEUI(), plot);
         chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);
     }
+
 
     private void createControlPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data) {
         controlPanel = new JPanel();

@@ -5,6 +5,7 @@ import application.routing.heuristic.SimplePollutionHeuristic;
 import datagenerator.SensorDataGenerator;
 import iot.Environment;
 import iot.GlobalClock;
+import iot.SimulationRunner;
 import iot.lora.BasicFrameHeader;
 import iot.lora.LoraWanPacket;
 import iot.lora.MacCommand;

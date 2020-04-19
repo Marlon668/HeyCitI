@@ -65,7 +65,7 @@ package gui.util;
  *
  */
 
-import org.jfree.chart.ui.NumberCellRenderer;
+import org.jfree.ui.NumberCellRenderer;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import gui.util.RefineryUtilities;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -46,16 +45,15 @@ public class GraphsForResults extends JFrame {
 
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(){
             Stroke soild = new BasicStroke(2.0f);
-            Stroke dashed =  new BasicStroke(1.0f,BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[] {10.0f}, 0.0f);
             @Override
             public Stroke getItemStroke(int row, int column) {
                 return soild;
             }
         };
 
-        renderer.setDefaultShapesVisible(true);
-        renderer.setDefaultShapesFilled(true);
-        renderer.setDefaultStroke(new BasicStroke(3));
+        renderer.setBaseShapesVisible(true);
+        renderer.setBaseShapesFilled(true);
+        renderer.setBaseStroke(new BasicStroke(3));
         plot.setRenderer(renderer);
         return chart;
     }

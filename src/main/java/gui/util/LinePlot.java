@@ -31,6 +31,10 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+/**
+ * Class used for plotting a line graphic representing data for air quality or amount of adaptations
+ * for a certain run
+ */
 
 public class LinePlot extends JFrame {
     public LinePlot (String var1, HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results, ArrayList<Mote> motes, int index,int data) {
@@ -126,6 +130,14 @@ public class LinePlot extends JFrame {
         return panel;
     }
 
+    /**
+     * Translate data in a dataset to plot the boxplots
+     * @param results a hashmap containing information about the air quality and a hashmap for different
+     *                runs with different parameters (width,height) for a certain configurations
+     * @param motes arraylist containing every mote of the configuration
+     * @param index of which mote must we show a window containing boxplots to respresent its data
+     * @param data 0 = showing air qualtiy, 1 = showing amount of adaptations
+     */
     private static XYDataset createDataset(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,ArrayList<Mote> motes,int index, int data) {
         if(data==0) {
             double noAdaptationValue = 0.0;
@@ -180,8 +192,8 @@ public class LinePlot extends JFrame {
             var2.setRangeZeroBaselineVisible(true);
             var2.getRangeAxis().setRange(0.0,2.0);
             XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
-            var3.setDefaultShapesVisible(true);
-            var3.setDefaultShapesFilled(true);
+            var3.setBaseShapesVisible(true);
+            var3.setBaseShapesFilled(true);
 
             var3.setDrawOutlines(true);
             NumberAxis var4 = (NumberAxis) var2.getRangeAxis();
@@ -195,8 +207,8 @@ public class LinePlot extends JFrame {
             var2.setDomainZeroBaselineVisible(true);
             var2.setRangeZeroBaselineVisible(true);
             XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
-            var3.setDefaultShapesVisible(true);
-            var3.setDefaultShapesFilled(true);
+            var3.setBaseShapesVisible(true);
+            var3.setBaseShapesFilled(true);
 
             var3.setDrawOutlines(true);
             NumberAxis var4 = (NumberAxis) var2.getRangeAxis();

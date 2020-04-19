@@ -69,6 +69,7 @@ public class Simulation {
     private int amountUsers;
     private HashMap<Mote,Integer> changed;
     private HashMap<Mote,Double> distanceMote;
+    private int steps;
 
     /**
      * sets the pollutiongrid
@@ -98,6 +99,7 @@ public class Simulation {
         this.finished = false;
         setPollutionEnvironment(pollutionEnvironment);
         this.simulationRunner = simulationRunner;
+        steps = 1;
     }
 
     public RouteEvaluator getRouteEvaluator(){
@@ -242,14 +244,20 @@ public class Simulation {
 
 
     /**
-     * Initialise the changed hashmap in the usermote to save every adaptation
-     * that will be made before visualise the simulation
-     * Used if you choose for without network option 2
+     * Initialise the configuration and motes if option 2 without network is chosen
+     * The earlier routing application will be destructed, single run will be set up and
+     * all the gateways in the environment will be moved. This is necessarilly because otherwise
+     * there will be sent unusable packages to the motes causing possible errors
+     * For network option 2,  every adaptation that will be made to the path of the mote will be determined
+     * before simulation and the path belonging to the start position will be set as the start path of the mote
      */
     public void initialiseMote(){
         changed = new HashMap<>();
-        routingApplication.destruct();
-        setupSingleRun(true);
+        // Removing of the gateWays
+        int numberOfGateWays = environment.get().getGateways().size();
+        for(int i=0;i<numberOfGateWays;i++){
+            environment.get().getGateways().remove(0);
+        }
         if(simulationRunner.getParameters().getSetupFirst()==2) {
             routingApplication.calculateRoutingAdaptations(Objects.requireNonNull(environment.get()),sensorEnvironment);
             for (Mote mote : environment.get().getMotes()) {
@@ -259,6 +267,8 @@ public class Simulation {
                 }
             }
         }
+        //routingApplication.destruct();
+        setupSingleRun(true);
 
     }
 
@@ -283,8 +293,9 @@ public class Simulation {
                         routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                     } else {
                         routingApplication.handleRouteRequestWithoutNetworkForRun((UserMote) mote, environment.get(), sensorEnvironment);
-                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
                         addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+
                     }
                 }
             });
@@ -326,7 +337,7 @@ public class Simulation {
                 else {
                         if(!(mote instanceof UserMote) ||(getApproach() == null || !getApproach().getName().equals("Air Quality")))
                         {
-                            // Remove the visibility of already vissited waypoints of the followed path
+                            // Remove the visibility of already visited waypoints of the followed path
                             if(simulationRunner.getParameters().getRemoveConn()==1 && mote.getPath().getWayPoints().size()==3) {
                                 mote.getPath().getWayPoints().remove(0);
                             }
@@ -442,12 +453,6 @@ public class Simulation {
                     }
 
             });
-        if(!(getApproach() == null) && getApproach().getName()=="Get Information" && environment.get().getClock().getTime().isAfter(startTime)) {
-            if (time % 3000 == 0) {
-                updateInformation();
-            }
-            time += 1;
-        }
 
 
         Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
@@ -495,13 +500,11 @@ public class Simulation {
                         routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                     } else {
                         ((UserMote) mote).changePath();
-
-                        if (simulationRunner.getParameters().getRemoveConn() == 1&& mote.getPath().getWayPoints().size() == 3) {
-                                mote.getPath().getWayPoints().remove(0);
-                        }else {
-                            wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                        //addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                        if(!(wayPointMap.get(mote) == mote.getPath().getWayPoints().size())) {
+                            addDistance(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         }
-                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                     }
                 }
             });
@@ -532,31 +535,13 @@ public class Simulation {
         }
     }
 
-
-    private void updateInformation()
-    {
-        environment.get().getGraph().getConnections().entrySet().stream()
-            .forEach(entry -> {
-                    Double cost = routeEvaluator.getCostConnection(entry.getValue());
-                    if(information.containsKey(entry.getKey())){
-                        information.get(entry.getKey()).add(information.get(entry.getKey()).size() - 1, cost);
-                        information.put(entry.getKey(), information.get(entry.getKey()));
-                    }
-                    else
-                    {
-                        List<Double> list = new ArrayList<>();
-                        list.add(0,cost);
-                        information.put(entry.getKey(),list);
-                    }
-                }
-            );
-
-
-    }
-
+    /**
+     * Function to determine if the siulation is finished
+     * @return true if all motes are  arrived to their destination
+     */
     public boolean isFinished() {
         if(!this.continueSimulation.test(this.getEnvironment()) && !this.finished) {
-            if (simulationRunner.getMultipleRun()) {
+            if (simulationRunner.getMultipleRun() && getApproach().getName()!="No Adaptation") {
                     this.finished = true;
                     HashMap<Mote, Pair<Long, Long>> time = new HashMap<>();
                     HashMap<Mote, Pair<Double, Integer>> result = new HashMap<>();
@@ -611,10 +596,20 @@ public class Simulation {
 
     }
 
+    /**
+     * Function to add the distance of a connection to the distance of the already completed path
+     * @param mote the mote to add the distance of the connection to the distance of the already completed path
+     * @param geoPosition the next geoposition where the mote should go to
+     */
     private void addDistance(Mote mote,GeoPosition geoPosition){
         distanceMote.put(mote,distanceMote.get(mote)+ MapHelper.distance(Objects.requireNonNull(environment.get()).getMapHelper().toGeoPosition(mote.getPosInt()),geoPosition)*1000);
     }
 
+    /**
+     * Function to determine if 2 geopostions doesn't come after each other
+     * @param positions list of geopositions to check for doubles
+     * @return true if path contains doubles after each other, false otherwise
+     */
     private boolean pathNotContainsDoubles(List<GeoPosition> positions)
     {
         List<Long> path2 = new ArrayList<>();
@@ -635,6 +630,10 @@ public class Simulation {
     }
 
 
+    /**
+     * Function for setting up a simulation
+     * @param pred the stopping condition of the simulation (e.g. all motes are at their destination)
+     */
     private synchronized void setupSimulation(Predicate<Environment> pred) {
         this.amountUsers = 0;
         for(Mote mote : environment.get().getMotes()){
@@ -690,6 +689,12 @@ public class Simulation {
         this.continueSimulation = pred;
 
     }
+
+    /**
+     * Function for setting up a single run
+     * @param shouldResetHistory boolean to decide if we should reset the history of the environment
+     *                           or of the routing application
+     */
     void setupSingleRun(boolean shouldResetHistory) {
         if (shouldResetHistory) {
             this.getEnvironment().resetHistory();
@@ -703,14 +708,10 @@ public class Simulation {
         simulationRunner.setupSimulationRunner();
     }
 
-    void setupTimedRun() {
-        this.getEnvironment().resetHistory();
-
-        var finalTime = this.getEnvironment().getClock().getTime()
-            .plus(inputProfile.getSimulationDuration(), inputProfile.getTimeUnit());
-        this.setupSimulation((env) -> env.getClock().getTime().isBefore(finalTime));
-    }
-
+    /**
+     * Function for doing a simulation without a network
+     * @param Pollenvironment the pollutionenvironment that is used for the simulation
+     */
     public void simulateStepRun(PollutionEnvironment Pollenvironment) {
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
@@ -741,10 +742,18 @@ public class Simulation {
         this.getEnvironment().getClock().tick(1);
     }
 
+    /**
+     * Function to decide if run for simulations for gathering results is finished
+     * @return true if simulation is finished, false otherwise
+     */
     public boolean RunIsFinishedForResults(){
         return !this.continueSimulation.test(this.getEnvironment());
     }
 
+    /**
+     * Function to decide if run is finished for runs without network
+     * @return true if run is finished, false otherwise
+     */
     public boolean RunisFinished() {
         if(!this.continueSimulation.test(this.getEnvironment()))
         {
