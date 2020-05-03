@@ -29,9 +29,9 @@ import org.jfree.data.xy.XYSeriesCollection;
  * certain paths
  */
 public class ScatterPlot extends JFrame {
-    public ScatterPlot(String var1,HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results) {
+    public ScatterPlot(String var1,HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,boolean normalise) {
         super(var1);
-        JPanel var2 = createPanel(results);
+        JPanel var2 = createPanel(results,normalise);
         var2.setPreferredSize(new java.awt.Dimension(1000, 500));
         this.setContentPane(var2);
     }
@@ -57,14 +57,23 @@ public class ScatterPlot extends JFrame {
      * @param results a hashmap containing information about the air quality and a hashmap for different
      *                runs with different parameters (width,height) for a certain configurations
      */
-    public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results) {
+    public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,boolean normalise) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (Map.Entry<Mote,HashMap<Integer, HashMap<Integer, Result>>> moteEntry : results.entrySet()) {
             XYSeries series1 = new XYSeries("Mote : "+  moteEntry.getKey().getEUI());
+            double noAdaptationValue = 1.0;
             for (Map.Entry<Integer, HashMap<Integer, Result>> moteEntry2 :moteEntry.getValue().entrySet()){
+                if(moteEntry2.getKey()==0){
+                    if(normalise) {
+                        for (Map.Entry<Integer, Result> moteEntry3 : moteEntry2.getValue().entrySet()) {
+                            Result result = moteEntry3.getValue();
+                            noAdaptationValue = result.getAirQuality();
+                        }
+                    }
+                }
                 for (Map.Entry<Integer, Result> moteEntry3 :moteEntry2.getValue().entrySet()){
                     Result result = moteEntry3.getValue();
-                    series1.add(result.getDistance(), result.getAirQuality());
+                    series1.add(result.getDistance(), result.getAirQuality()/noAdaptationValue);
                 }
             }
             dataset.addSeries(series1);

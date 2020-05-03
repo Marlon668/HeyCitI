@@ -37,16 +37,17 @@ import org.jfree.data.xy.XYSeriesCollection;
  */
 
 public class LinePlot extends JFrame {
-    public LinePlot (String var1, HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results, ArrayList<Mote> motes, int index,int data) {
+
+    public LinePlot (String var1, HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results, ArrayList<Mote> motes, int index,int data,boolean normalise) {
         super(var1);
-        JPanel var2 = createPanel(results,motes,index,data);
+        JPanel var2 = createPanel(results,motes,index,data,normalise);
         RefineryUtilities.centerFrameOnScreen(this);
         var2.setPreferredSize(new java.awt.Dimension(1000, 500));
         this.setContentPane(var2);
     }
 
-    public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,ArrayList<Mote> motes,int index,int data) {
-        JFreeChart var0 = createChart(createDataset(results,motes,index,data),motes,index,data);
+    public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,ArrayList<Mote> motes,int index,int data,boolean normalise) {
+        JFreeChart var0 = createChart(createDataset(results,motes,index,data,normalise),motes,index,data,normalise);
         ChartPanel panel = new ChartPanel(var0);
         panel.setLayout(new FlowLayout((FlowLayout.RIGHT)));
         panel.add(new JButton(new AbstractAction("\u22b2Prev") {
@@ -57,7 +58,7 @@ public class LinePlot extends JFrame {
                     Window window = javax.swing.SwingUtilities.getWindowAncestor(panel);
                     window.dispose();
                     LinePlot linePlot = new LinePlot(
-                        "Mote : " + motes.get(index).getEUI(), results, motes, index, data-1);
+                        "Mote : " + motes.get(index).getEUI(), results, motes, index, data-1,normalise);
                     linePlot.pack();
                     linePlot.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                     RefineryUtilities.centerFrameOnScreen(linePlot);
@@ -67,7 +68,7 @@ public class LinePlot extends JFrame {
                         Window window = javax.swing.SwingUtilities.getWindowAncestor(panel);
                         window.dispose();
                         LinePlot linePlot = new LinePlot(
-                            "Mote : " + motes.get(index - 1).getEUI(), results, motes, index - 1, data+1);
+                            "Mote : " + motes.get(index - 1).getEUI(), results, motes, index - 1, data+1,normalise);
                         linePlot.pack();
                         linePlot.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                         RefineryUtilities.centerFrameOnScreen(linePlot);
@@ -83,7 +84,7 @@ public class LinePlot extends JFrame {
                     Window window = javax.swing.SwingUtilities.getWindowAncestor(panel);
                     window.dispose();
                     LinePlot linePlot = new LinePlot(
-                        "Mote : " + motes.get(index).getEUI(), results, motes, index, 1);
+                        "Mote : " + motes.get(index).getEUI(), results, motes, index, 1,normalise);
                     linePlot.pack();
                     linePlot.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                     RefineryUtilities.centerFrameOnScreen(linePlot);
@@ -93,7 +94,7 @@ public class LinePlot extends JFrame {
                         Window window = javax.swing.SwingUtilities.getWindowAncestor(panel);
                         window.dispose();
                         LinePlot linePlot = new LinePlot(
-                            "Mote : " + motes.get(index + 1).getEUI(), results, motes, index + 1, 0);
+                            "Mote : " + motes.get(index + 1).getEUI(), results, motes, index + 1, 0,normalise);
                         linePlot.pack();
                         linePlot.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                         RefineryUtilities.centerFrameOnScreen(linePlot);
@@ -138,21 +139,23 @@ public class LinePlot extends JFrame {
      * @param index of which mote must we show a window containing boxplots to respresent its data
      * @param data 0 = showing air qualtiy, 1 = showing amount of adaptations
      */
-    private static XYDataset createDataset(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,ArrayList<Mote> motes,int index, int data) {
+    private static XYDataset createDataset(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,ArrayList<Mote> motes,int index, int data,boolean normalise) {
         if(data==0) {
-            double noAdaptationValue = 0.0;
+            double noAdaptationValue = 1.0;
             Mote mote = motes.get(index);
             XYSeriesCollection dataset = new XYSeriesCollection();
             HashMap<Integer, HashMap<Integer, Result>> resultsMote = results.get(mote);
             for (Map.Entry<Integer, HashMap<Integer, Result>> moteEntry2 : resultsMote.entrySet()) {
                 if(moteEntry2.getKey()==0){
-                    for (Map.Entry<Integer, Result> moteEntry3 : moteEntry2.getValue().entrySet()) {
-                        Result result = moteEntry3.getValue();
-                        noAdaptationValue = result.getAirQuality();
+                    if(normalise) {
+                        for (Map.Entry<Integer, Result> moteEntry3 : moteEntry2.getValue().entrySet()) {
+                            Result result = moteEntry3.getValue();
+                            noAdaptationValue = result.getAirQuality();
+                        }
                     }
                 }
                 else{
-                    XYSeries series1 = new XYSeries("Buffersize(Width) : " + moteEntry2.getKey());
+                    XYSeries series1 = new XYSeries("K = " + moteEntry2.getKey());
                     for (Map.Entry<Integer, Result> moteEntry3 : moteEntry2.getValue().entrySet()) {
                         Result result = moteEntry3.getValue();
                         series1.add((double) moteEntry3.getKey(), result.getAirQuality()/noAdaptationValue);
@@ -169,7 +172,7 @@ public class LinePlot extends JFrame {
             HashMap<Integer, HashMap<Integer, Result>> resultsMote = results.get(mote);
             for (Map.Entry<Integer, HashMap<Integer, Result>> moteEntry2 : resultsMote.entrySet()) {
                 if(moteEntry2.getKey()!=0) {
-                    XYSeries series1 = new XYSeries("Buffersize(Width) : " + moteEntry2.getKey());
+                    XYSeries series1 = new XYSeries("K = " + moteEntry2.getKey());
                     for (Map.Entry<Integer, Result> moteEntry3 : moteEntry2.getValue().entrySet()) {
                         Result result = moteEntry3.getValue();
                         series1.add((double) moteEntry3.getKey(), result.getAmountAdaptations());
@@ -182,15 +185,20 @@ public class LinePlot extends JFrame {
         }
     }
 
-    private static JFreeChart createChart(XYDataset var0, ArrayList<Mote> motes, int index,int data) {
+    private static JFreeChart createChart(XYDataset var0, ArrayList<Mote> motes, int index,int data,boolean normalise) {
         if (data == 0) {
-            JFreeChart var1 = ChartFactory.createXYLineChart("Mote : " + motes.get(index).getEUI(), "Buffersize (height)", "Air-quality", var0, PlotOrientation.VERTICAL, true, true, false);
+            JFreeChart var1 = ChartFactory.createXYLineChart("Cyclist : " + motes.get(index).getEUI(), "Horizon", "Air-quality", var0, PlotOrientation.VERTICAL, true, true, false);
             XYPlot var2 = (XYPlot) var1.getPlot();
             var2.setDomainPannable(true);
             var2.setRangePannable(true);
             var2.setDomainZeroBaselineVisible(true);
             var2.setRangeZeroBaselineVisible(true);
-            var2.getRangeAxis().setRange(0.0,2.0);
+            if(normalise) {
+                var2.getRangeAxis().setRange(0.0, 2.0);
+            }
+            else{
+                var2.getRangeAxis().setRange(0.0, 5.0);
+            }
             XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
             var3.setBaseShapesVisible(true);
             var3.setBaseShapesFilled(true);

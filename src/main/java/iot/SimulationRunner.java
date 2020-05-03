@@ -66,7 +66,9 @@ public class SimulationRunner {
     // Results for visualising experiments
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,Result>>> results;
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> resultsBoxPlotAirQuality;
+    private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> resultsBoxPlotPredicatedAirQuality;
     private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> resultsBoxPlotAdaptations;
+    private HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> errorListConnections;
     private HashMap<Mote,List<Pair<Double,Double>>> visualiseRun;
     private HashMap<Mote,List<Double>> adaptationPoints;
     private HashMap<Mote,List<Pair<Pair<Double,Double>,Pair<Double,Double>>>> alternativeRoute;
@@ -89,19 +91,6 @@ public class SimulationRunner {
         return  multipleRun;
     }
 
-    private Boolean bestpathAvailable;
-
-
-    public void activateBestpath()
-    {
-        bestpathAvailable = true;
-    }
-
-    public void deactivateBestpath()
-    {
-        bestpathAvailable = false;
-    }
-
     public boolean isCouldLoadPollutionFile(){
         return couldLoadPollutionFile;
     }
@@ -110,8 +99,15 @@ public class SimulationRunner {
         return resultsBoxPlotAirQuality;
     }
 
+    public HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> getResultsBoxPlotPredicatedAirQuality(){
+        return resultsBoxPlotPredicatedAirQuality;
+    }
     public HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> getResultsBoxPlotAdaptations(){
         return resultsBoxPlotAdaptations;
+    }
+
+    public HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Double>>>> getErrorListConnections(){
+        return errorListConnections;
     }
 
 
@@ -155,7 +151,6 @@ public class SimulationRunner {
         inputProfiles = loadInputProfiles();
         parameterFile = parameterfile;
         parameters = loadParameters(parameterfile);
-        bestpathAvailable = false;
         this.couldLoadPollutionFile = false;
 
         // Loading all the algorithms
@@ -235,7 +230,6 @@ public class SimulationRunner {
         this.sensorEnvironment = new SensorEnvironment();
         simulation = new Simulation(pollutionGrid,sensorEnvironment,sensorEnvironment.getPoll(),this);
         inputProfiles = loadInputProfiles();
-        bestpathAvailable = false;
         parameters = new Parameters();
 
         // Loading all the algorithms
@@ -474,7 +468,6 @@ public class SimulationRunner {
         // setting noAdaptation Method
         simulation.setApproach(algorithms.get(0));
         simulation.setAdaptationAlgorithm(algorithms.get(0));
-        System.out.println(simulation.getApproach().getName());
         setupSingleRun();
         simulation.setupSingleRun(true);
         setupSimulationRunner();
@@ -501,7 +494,6 @@ public class SimulationRunner {
         simulation.setApproach(algorithms.get(3));
         simulation.setAdaptationAlgorithm(algorithms.get(3));
         setupMultipleRun(true);
-        System.out.println(simulation.getApproach().getName());
         simulateCalculatedRunForResult();
         for(Mote mote : environment.getMotes()) {
             if (mote instanceof UserMote) {
@@ -530,12 +522,10 @@ public class SimulationRunner {
             simulateCalculatedRunForResult();
             for(Mote mote : environment.getMotes()) {
                 if (mote instanceof UserMote) {
-                    System.out.println(results.get(mote) == null);
                     if (results.get(mote).containsKey(currentBufferSizeWidth)) {
                         HashMap<Integer, Result> results2 = results.get(mote).get(currentBufferSizeWidth);
                         Result result = new Result(simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI()), routingApplication.getAmountAdaptations().get(mote.getEUI()), simulation.getDistanceMote().get(mote));
                         results2.put(currenctBufferSizeHeight, result);
-                        System.out.println(results.get(mote).get(currentBufferSizeWidth).size());
                     } else {
                         HashMap<Integer, HashMap<Integer, Result>> results1 = results.get(mote);
                         HashMap<Integer, Result> results2 = new HashMap<>();
@@ -543,7 +533,6 @@ public class SimulationRunner {
                         results2.put(currenctBufferSizeHeight, result);
                         results1.put(currentBufferSizeWidth, results2);
                         results.put(mote, results1);
-                        System.out.println(results.get(mote).size());
                     }
 
                 }
@@ -588,12 +577,40 @@ public class SimulationRunner {
     /**
      * Function for gathering information for multiple runs for some specific parameters used for
      * visualising them via a boxplot
+     * This is used to visualise the diversity of the values for air quality and number of adaptations
+     * for a certain amount of runs with noise added
      * @param amountRuns the amount of runs per parameter selection
      * @param configurationList the list of parameters to gather the information from
      */
     public void resultRunBoxPlot(int amountRuns, List<Pair<Integer,Integer>> configurationList){
         resultsBoxPlotAirQuality = new HashMap<>();
         resultsBoxPlotAdaptations = new HashMap<>();
+        this.getParameters().setSetupFirst(0);
+        // setting noAdaptation Method
+        simulation.setApproach(algorithms.get(0));
+        simulation.setAdaptationAlgorithm(algorithms.get(0));
+        setupSingleRun();
+        simulation.setupSingleRun(true);
+        setupSimulationRunner();
+        simulateCalculatedRunForResult();
+        HashMap<Mote,List<Double>> resultSaver1 = new HashMap<>();
+        for(Mote mote : environment.getMotes()) {
+            if (mote instanceof UserMote) {
+                double airQuality = simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI());
+                List<Double> resultAirQuality = new ArrayList<>();
+                resultAirQuality.add(airQuality);
+                resultSaver1.put(mote,resultAirQuality);
+            }
+        }
+        for(int i=0;i<configurationList.size();i++){
+            for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
+                HashMap<Integer, HashMap<Integer, List<Double>>> results1a = new HashMap<>();
+                HashMap<Integer, List<Double>> results2a = new HashMap<>();
+                results2a.put(0,resultSaver1.get(moteEntry.getKey()));
+                results1a.put(0,results2a);
+                resultsBoxPlotAirQuality.put(moteEntry.getKey(),results1a);
+            }
+        }
         Pair<Integer,Integer> firstConfiguration = configurationList.get(0);
         int currenctBufferSizeHeight = firstConfiguration.getLeft();
         int currentBufferSizeWidth = firstConfiguration.getRight();
@@ -602,7 +619,7 @@ public class SimulationRunner {
         this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
         this.getParameters().setSetupFirst(1);
         simulation.setApproach(algorithms.get(3));
-        HashMap<Mote,List<Double>> resultSaver1 = new HashMap<>();
+        resultSaver1 = new HashMap<>();
         HashMap<Mote,List<Integer>> resultSaver2 = new HashMap<>();
         int experiment = 1;
         for (Mote mote : environment.getMotes()) {
@@ -642,7 +659,7 @@ public class SimulationRunner {
             experiment += 1;
         }
         for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
-            HashMap<Integer, HashMap<Integer, List<Double>>> results1a = new HashMap<>();
+            HashMap<Integer, HashMap<Integer, List<Double>>> results1a = resultsBoxPlotAirQuality.get(moteEntry.getKey());
             HashMap<Integer, HashMap<Integer, List<Integer>>> results1b = new HashMap<>();
             HashMap<Integer, List<Double>> results2a = new HashMap<>();
             HashMap<Integer, List<Integer>> results2b = new HashMap<>();
@@ -715,9 +732,271 @@ public class SimulationRunner {
                 }
 
             }
-            System.out.println("Height : " + currenctBufferSizeHeight);
-            System.out.println("Width : " + currentBufferSizeWidth);
+        }
 
+    }
+
+    /**
+     * Function for gathering information for multiple runs for some specific parameters used for
+     * visualising them via a boxplot
+     * This is used for visualising the diversity of effective values for the air quality for an amount of runs
+     * and the averages of all predicted values for the air quality for the whole run for a certain
+     * amount of runs and added noise
+     * @param amountRuns the amount of runs per parameter selection
+     * @param configurationList the list of parameters to gather the information from
+     */
+    public void resultRunBoxPlot2(int amountRuns, List<Pair<Integer,Integer>> configurationList){
+        resultsBoxPlotAirQuality = new HashMap<>();
+        resultsBoxPlotPredicatedAirQuality = new HashMap<>();
+        Pair<Integer,Integer> firstConfiguration = configurationList.get(0);
+        int currenctBufferSizeHeight = firstConfiguration.getLeft();
+        int currentBufferSizeWidth = firstConfiguration.getRight();
+        configurationList.remove(0);
+        this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
+        this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
+        this.getParameters().setSetupFirst(1);
+        simulation.setApproach(algorithms.get(3));
+        HashMap<Mote,List<Double>> resultSaver1 = new HashMap<>();
+        HashMap<Mote,List<Double>> resultSaver2 = new HashMap<>();
+        int experiment = 1;
+        for (Mote mote : environment.getMotes()) {
+            if (mote instanceof UserMote) {
+                ArrayList<GeoPosition> path = new ArrayList<>();
+                path.add(environment.getMapHelper().toGeoPosition(mote.getOriginalPosInt()));
+                mote.setPath(path);
+            }
+        }
+        while(experiment<= amountRuns) {
+            setupSingleRun();
+            simulation.setupSingleRun(true);
+            setupSimulationRunner();
+            simulateVisualiseRun2();
+            for (Mote mote : environment.getMotes()) {
+                if (mote instanceof UserMote) {
+                    double airQuality = simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI());
+                    double prediction = routingApplication.getPredicted().get(mote)/routingApplication.getAmountWaypoints().get(mote);
+                    if(resultSaver1.get(mote)!=null) {
+                        List<Double> resultAirQuality = resultSaver1.get(mote);
+                        List<Double> resultPredictions = resultSaver2.get(mote);
+                        resultAirQuality.add(airQuality);
+                        resultPredictions.add(prediction);
+                        resultSaver1.put(mote,resultAirQuality);
+                        resultSaver2.put(mote,resultPredictions);
+                    }
+                    else{
+                        List<Double> resultAirQuality = new ArrayList<>();
+                        List<Double> resultPredictions = new ArrayList<>();
+                        resultAirQuality.add(airQuality);
+                        resultPredictions.add(prediction);
+                        resultSaver1.put(mote,resultAirQuality);
+                        resultSaver2.put(mote,resultPredictions);
+                    }
+                }
+            }
+            experiment += 1;
+        }
+        for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
+            HashMap<Integer, HashMap<Integer, List<Double>>> results1a = new HashMap<>();
+            HashMap<Integer, HashMap<Integer, List<Double>>> results1b = new HashMap<>();
+            HashMap<Integer, List<Double>> results2a = new HashMap<>();
+            HashMap<Integer, List<Double>> results2b = new HashMap<>();
+            results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+            results2b.put(currentBufferSizeWidth,resultSaver2.get(moteEntry.getKey()));
+            results1a.put(currenctBufferSizeHeight,results2a);
+            results1b.put(currenctBufferSizeHeight,results2b);
+            resultsBoxPlotAirQuality.put(moteEntry.getKey(),results1a);
+            resultsBoxPlotPredicatedAirQuality.put(moteEntry.getKey(),results1b);
+        }
+        while(!(configurationList.isEmpty())){
+            Pair<Integer,Integer> nextConfiguration = configurationList.get(0);
+            currenctBufferSizeHeight = nextConfiguration.getLeft();
+            currentBufferSizeWidth = nextConfiguration.getRight();
+            configurationList.remove(0);
+            this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
+            this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
+            resultSaver1 = new HashMap<>();
+            resultSaver2 = new HashMap<>();
+            experiment = 1;
+            while(experiment<= amountRuns) {
+                setupMultipleRun(true);
+                simulateVisualiseRun2();
+                for (Mote mote : environment.getMotes()) {
+                    if (mote instanceof UserMote) {
+                        double airQuality = simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI());
+                        double prediction = routingApplication.getPredicted().get(mote)/routingApplication.getAmountWaypoints().get(mote);
+                        if(resultSaver1.get(mote)!=null) {
+                            List<Double> resultAirQuality = resultSaver1.get(mote);
+                            List<Double> resultPredictions = resultSaver2.get(mote);
+                            resultAirQuality.add(airQuality);
+                            resultPredictions.add(prediction);
+                            resultSaver1.put(mote,resultAirQuality);
+                            resultSaver2.put(mote,resultPredictions);
+                        }
+                        else{
+                            List<Double> resultAirQuality = new ArrayList<>();
+                            List<Double> resultPredictions = new ArrayList<>();
+                            resultAirQuality.add(airQuality);
+                            resultPredictions.add(prediction);
+                            resultSaver1.put(mote,resultAirQuality);
+                            resultSaver2.put(mote,resultPredictions);
+                        }
+                    }
+                }
+                experiment += 1;
+            }
+            for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
+                HashMap<Integer, HashMap<Integer, List<Double>>> results1a = resultsBoxPlotAirQuality.get(moteEntry.getKey());
+                HashMap<Integer, HashMap<Integer, List<Double>>> results1b = resultsBoxPlotPredicatedAirQuality.get(moteEntry.getKey());
+                if(results1a.get(currenctBufferSizeHeight)!=null) {
+                    HashMap<Integer, List<Double>> results2a = results1a.get(currenctBufferSizeHeight);
+                    HashMap<Integer, List<Double>> results2b = results1b.get(currenctBufferSizeHeight);
+                    results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+                    results2b.put(currentBufferSizeWidth,resultSaver2.get(moteEntry.getKey()));
+                    results1a.put(currenctBufferSizeHeight,results2a);
+                    results1b.put(currenctBufferSizeHeight,results2b);
+                    resultsBoxPlotAirQuality.put(moteEntry.getKey(),results1a);
+                    resultsBoxPlotPredicatedAirQuality.put(moteEntry.getKey(),results1b);
+                }
+                else{
+                    HashMap<Integer, List<Double>> results2a = new HashMap<>();
+                    HashMap<Integer, List<Double>> results2b = new HashMap<>();
+                    results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+                    results2b.put(currentBufferSizeWidth,resultSaver2.get(moteEntry.getKey()));
+                    results1a.put(currenctBufferSizeHeight,results2a);
+                    results1b.put(currenctBufferSizeHeight,results2b);
+                    resultsBoxPlotAirQuality.put(moteEntry.getKey(),results1a);
+                    resultsBoxPlotPredicatedAirQuality.put(moteEntry.getKey(),results1b);
+                }
+
+            }
+        }
+
+    }
+
+    /**
+     * Function for gathering information for multiple runs for some specific parameters used for
+     * visualising them via a boxplot
+     * This method is used for visualising the diversity of the average difference of the predicted cost of the next connection
+     * to take by the mote calculated by the routing application and the effective cost
+     * of that connection calculated by the route-evaluator for a certain amount of runs
+     * @param amountRuns the amount of runs per parameter selection
+     * @param configurationList the list of parameters to gather the information from
+     */
+    public void resultRunBoxPlot3(int amountRuns, List<Pair<Integer,Integer>> configurationList){
+        errorListConnections = new HashMap<>();
+        Pair<Integer,Integer> firstConfiguration = configurationList.get(0);
+        int currenctBufferSizeHeight = firstConfiguration.getLeft();
+        int currentBufferSizeWidth = firstConfiguration.getRight();
+        configurationList.remove(0);
+        this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
+        this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
+        this.getParameters().setSetupFirst(1);
+        simulation.setApproach(algorithms.get(3));
+        HashMap<Mote,List<Double>> resultSaver1 = new HashMap<>();
+        int experiment = 1;
+        for (Mote mote : environment.getMotes()) {
+            if (mote instanceof UserMote) {
+                ArrayList<GeoPosition> path = new ArrayList<>();
+                path.add(environment.getMapHelper().toGeoPosition(mote.getOriginalPosInt()));
+                mote.setPath(path);
+            }
+        }
+        while(experiment<= amountRuns) {
+            setupSingleRun();
+            simulation.setupSingleRun(true);
+            setupSimulationRunner();
+            simulateVisualiseRun();
+            for (Mote mote : environment.getMotes()) {
+                if (mote instanceof UserMote) {
+                    List<Double> effectiveResultsConnections = simulation.getRouteEvaluator().getEffectiveValueConnection().get(mote);
+                    List<Double> predictiveResults = routingApplication.getPredictiveWaypoints().get(mote);
+                    List<Double> difference = new ArrayList<>();
+                    for(int i=0;i<effectiveResultsConnections.size();i++){
+                        difference.add(java.lang.Math.abs(predictiveResults.get(i)-effectiveResultsConnections.get(i)));
+                    }
+                    double averageDifference =0;
+                    for(double differenceConn : difference){
+                        averageDifference += differenceConn;
+                    }
+                    averageDifference = averageDifference/difference.size();
+                    if(resultSaver1.get(mote)!=null) {
+                        List<Double> costConnections = resultSaver1.get(mote);
+
+                        costConnections.add(averageDifference);
+                        resultSaver1.put(mote,costConnections);
+                    }
+                    else{
+                        List<Double> costConnections = new ArrayList<>();
+                        costConnections.add(averageDifference);
+                        resultSaver1.put(mote,costConnections);
+                    }
+                }
+            }
+            experiment += 1;
+        }
+        for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
+            HashMap<Integer, HashMap<Integer, List<Double>>> results1a = new HashMap<>();
+            HashMap<Integer, List<Double>> results2a = new HashMap<>();
+            results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+            results1a.put(currenctBufferSizeHeight,results2a);
+            errorListConnections.put(moteEntry.getKey(),results1a);
+        }
+        while(!(configurationList.isEmpty())){
+            Pair<Integer,Integer> nextConfiguration = configurationList.get(0);
+            currenctBufferSizeHeight = nextConfiguration.getLeft();
+            currentBufferSizeWidth = nextConfiguration.getRight();
+            configurationList.remove(0);
+            this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
+            this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
+            resultSaver1 = new HashMap<>();
+            experiment = 1;
+            while(experiment<= amountRuns) {
+                setupMultipleRun(true);
+                simulateVisualiseRun();
+                for (Mote mote : environment.getMotes()) {
+                    if (mote instanceof UserMote) {
+                        List<Double> effectiveResultsConnections = simulation.getRouteEvaluator().getEffectiveValueConnection().get(mote);
+                        List<Double> predictiveResults = routingApplication.getPredictiveWaypoints().get(mote);
+                        List<Double> difference = new ArrayList<>();
+                        for(int i=0;i<=effectiveResultsConnections.size();i++){
+                            difference.add(java.lang.Math.abs(predictiveResults.get(i)-effectiveResultsConnections.get(i)));
+                        }
+                        double averageDifference =0;
+                        for(double differenceConn : difference){
+                            averageDifference += differenceConn;
+                        }
+                        averageDifference = averageDifference/difference.size();
+                        if(resultSaver1.get(mote)!=null) {
+                            List<Double> costConnections = resultSaver1.get(mote);
+
+                            costConnections.add(averageDifference);
+                            resultSaver1.put(mote,costConnections);
+                        }
+                        else{
+                            List<Double> costConnections = new ArrayList<>();
+                            costConnections.add(averageDifference);
+                            resultSaver1.put(mote,costConnections);
+                        }
+                    }
+                }
+                experiment += 1;
+            }
+            for (Map.Entry<Mote,List<Double>> moteEntry : resultSaver1.entrySet()) {
+                HashMap<Integer, HashMap<Integer, List<Double>>> results1a = errorListConnections.get(moteEntry.getKey());
+                if(results1a.get(currenctBufferSizeHeight)!=null) {
+                    HashMap<Integer, List<Double>> results2a = results1a.get(currenctBufferSizeHeight);
+                    results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+                    results1a.put(currenctBufferSizeHeight,results2a);
+                    errorListConnections.put(moteEntry.getKey(),results1a);
+                }
+                else{
+                    HashMap<Integer, List<Double>> results2a = new HashMap<>();
+                    results2a.put(currentBufferSizeWidth,resultSaver1.get(moteEntry.getKey()));
+                    results1a.put(currenctBufferSizeHeight,results2a);
+                    errorListConnections.put(moteEntry.getKey(),results1a);
+                }
+
+            }
         }
 
     }
@@ -729,7 +1008,7 @@ public class SimulationRunner {
      *               we have done a certain amount of runs. These results have not to be updated because
      *               the air quality for multiple runs without noise is almost the same. For doing
      *               multiple runs with noise, there is an experimental option to do multiple runs
-     *               after each other and visualise the results by a boxplot
+     *               after each other and visualise the results by a boxplot, see method resultRunBoxPlot
      */
     public void multipleRun(HashMap<Mote, Pair<Long,Long>> time,HashMap<Mote,Pair<Double,Integer>> result){
         if(amountRuns != 0) {
@@ -837,6 +1116,17 @@ public class SimulationRunner {
     public synchronized void simulateVisualiseRun() {
         while (!simulation.RunIsFinishedForResults()) {
             simulation.simulateVisualiseRun(getEnvironmentAPI().getPoll());
+        }
+    }
+
+    /**
+     * Simulate a whole run, until the simulation is finished.
+     * Result of the run is not visible
+     * Used for making the utility of adaptation visible
+     */
+    public synchronized void simulateVisualiseRun2() {
+        while (!simulation.RunIsFinishedForResults()) {
+            simulation.simulateVisualiseRun2(getEnvironmentAPI().getPoll());
         }
     }
 
@@ -1049,6 +1339,24 @@ public class SimulationRunner {
     public void readResultsBoxPlotFromFile(File file) throws ParserConfigurationException {
         this.resultsBoxPlotAirQuality = ResultReaderForBoxPlot.readResultsAirQuality(file,this);
         this.resultsBoxPlotAdaptations = ResultReaderForBoxPlot.readResultsAdaptation(file,this);
+    }
+
+    public void saveResultsBoxPlotToFile2(File file){
+        ResultWriterForBoxPlot2.saveResultsToFile(this,resultsBoxPlotAirQuality,resultsBoxPlotPredicatedAirQuality,file);
+    }
+
+    public void readResultsBoxPlotFromFile2(File file) throws ParserConfigurationException {
+        this.resultsBoxPlotAirQuality = ResultReaderForBoxPlot2.readResultsAirQuality(file,this);
+        this.resultsBoxPlotPredicatedAirQuality = ResultReaderForBoxPlot2.readResultsPredictions(file,this);
+    }
+
+    public void saveResultsBoxPlotToFile3(File file){
+        ResultWriterForBoxPlot2.saveResultsToFile(this,resultsBoxPlotAirQuality,resultsBoxPlotPredicatedAirQuality,file);
+    }
+
+    public void readResultsBoxPlotFromFile3(File file) throws ParserConfigurationException {
+        this.resultsBoxPlotAirQuality = ResultReaderForBoxPlot2.readResultsAirQuality(file,this);
+        this.resultsBoxPlotPredicatedAirQuality = ResultReaderForBoxPlot2.readResultsPredictions(file,this);
     }
 
     public void saveSimulationToFile(File file) {

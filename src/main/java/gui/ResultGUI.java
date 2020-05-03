@@ -28,6 +28,8 @@ public class ResultGUI {
     private JRadioButton LineGraphsButton;
     private JRadioButton ScatterPlotButton;
     private JRadioButton VisualiseRunButton;
+    private JRadioButton boxplot2RadioButton;
+    private JRadioButton boxplot3RadioButton;
     private Integer option;
     private SimulationRunner simulationRunner;
 
@@ -40,6 +42,8 @@ public class ResultGUI {
         positionButtonGroup.add(BoxPlotButton);
         positionButtonGroup.add(ScatterPlotButton);
         positionButtonGroup.add(VisualiseRunButton);
+        positionButtonGroup.add(BoxPlotButton);
+        positionButtonGroup.add(boxplot3RadioButton);
 
         option = 1;
         LineGraphsButton.addActionListener(e ->
@@ -53,6 +57,12 @@ public class ResultGUI {
         );
         VisualiseRunButton.addActionListener(e ->
             option = 4
+        );
+        boxplot2RadioButton.addActionListener(e ->
+            option = 5
+        );
+        boxplot3RadioButton.addActionListener(e ->
+            option = 6
         );
 
 
@@ -87,14 +97,36 @@ public class ResultGUI {
                         frame.setPreferredSize(configureRun.getMainPanel().getPreferredSize());
                         frame.setVisible(true);
                     } else {
-                        Window window = SwingUtilities.getWindowAncestor(mainPanel);
-                        window.dispose();
-                        JFrame frame = new JFrame("Configure runs");
-                        ConfigureRun4 configureRun = new ConfigureRun4(simulationRunner);
-                        frame.setContentPane(configureRun.getMainPanel());
-                        frame.setMinimumSize(configureRun.getMainPanel().getMinimumSize());
-                        frame.setPreferredSize(configureRun.getMainPanel().getPreferredSize());
-                        frame.setVisible(true);
+                        if (option == 4) {
+                            Window window = SwingUtilities.getWindowAncestor(mainPanel);
+                            window.dispose();
+                            JFrame frame = new JFrame("Configure runs");
+                            ConfigureRun4 configureRun = new ConfigureRun4(simulationRunner);
+                            frame.setContentPane(configureRun.getMainPanel());
+                            frame.setMinimumSize(configureRun.getMainPanel().getMinimumSize());
+                            frame.setPreferredSize(configureRun.getMainPanel().getPreferredSize());
+                            frame.setVisible(true);
+                        } else {
+                            if (option == 5) {
+                                Window window = SwingUtilities.getWindowAncestor(mainPanel);
+                                window.dispose();
+                                JFrame frame = new JFrame("Configure runs");
+                                ConfigureRun5 configureRun = new ConfigureRun5(simulationRunner);
+                                frame.setContentPane(configureRun.getMainPanel());
+                                frame.setMinimumSize(configureRun.getMainPanel().getMinimumSize());
+                                frame.setPreferredSize(configureRun.getMainPanel().getPreferredSize());
+                                frame.setVisible(true);
+                            } else {
+                                Window window = SwingUtilities.getWindowAncestor(mainPanel);
+                                window.dispose();
+                                JFrame frame = new JFrame("Configure runs");
+                                ConfigureRun6 configureRun = new ConfigureRun6(simulationRunner);
+                                frame.setContentPane(configureRun.getMainPanel());
+                                frame.setMinimumSize(configureRun.getMainPanel().getMinimumSize());
+                                frame.setPreferredSize(configureRun.getMainPanel().getPreferredSize());
+                                frame.setVisible(true);
+                            }
+                        }
                     }
                 }
             }
@@ -126,7 +158,7 @@ public class ResultGUI {
      */
     private void $$$setupUI$$$() {
         mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainPanel.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
         mainPanel.setMinimumSize(new Dimension(800, 700));
         mainPanel.setPreferredSize(new Dimension(800, 700));
         LineGraphsButton = new JRadioButton();
@@ -137,13 +169,19 @@ public class ResultGUI {
         mainPanel.add(BoxPlotButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         OKButton = new JButton();
         OKButton.setText("OK");
-        mainPanel.add(OKButton, new GridConstraints(1, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mainPanel.add(OKButton, new GridConstraints(3, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         ScatterPlotButton = new JRadioButton();
         ScatterPlotButton.setText("Scatter plot");
-        mainPanel.add(ScatterPlotButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 19), null, 0, false));
+        mainPanel.add(ScatterPlotButton, new GridConstraints(1, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 19), null, 0, false));
         VisualiseRunButton = new JRadioButton();
         VisualiseRunButton.setText("Visualise Run");
-        mainPanel.add(VisualiseRunButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 19), null, 0, false));
+        mainPanel.add(VisualiseRunButton, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 19), null, 0, false));
+        boxplot2RadioButton = new JRadioButton();
+        boxplot2RadioButton.setText("Boxplot2");
+        mainPanel.add(boxplot2RadioButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        boxplot3RadioButton = new JRadioButton();
+        boxplot3RadioButton.setText("Boxplot3");
+        mainPanel.add(boxplot3RadioButton, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

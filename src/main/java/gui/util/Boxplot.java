@@ -35,8 +35,7 @@ public class Boxplot {
     private JPanel controlPanel;
     private List<String> legend;
     private final List<Color> clut = new ArrayList<Color>();
-    private List<Double> resultsNoAdaptation = new ArrayList<>();
-
+    private boolean normalise;
 
     private void initClut() {
         clut.add(Color.red);
@@ -47,16 +46,14 @@ public class Boxplot {
         clut.add(Color.cyan);
         clut.add(Color.magenta);
         clut.add(Color.blue);
-        resultsNoAdaptation.add(1.0195818558690959);
-        resultsNoAdaptation.add(1.7699003574909553);
-        resultsNoAdaptation.add(2.223919997254173);
     }
 
-    public Boxplot(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data) {
+    public Boxplot(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data,boolean normalise) {
         initClut();
+        this.normalise = normalise;
         createDataset(airQuality,adaptations,motes,index,data);
         createChartPanel(motes,index,data);
-        createControlPanel(airQuality,adaptations,motes,index,data);
+        createControlPanel(airQuality,adaptations,motes,index,data,normalise);
     }
 
     /**
@@ -73,17 +70,20 @@ public class Boxplot {
             Mote mote = motes.get(index);
             dataset = new DefaultBoxAndWhiskerCategoryDataset();
             HashMap<Integer, HashMap<Integer,List<Double>>> resultsMote = airQuality.get(mote);
+            double resultsNoAdaptation = 1;
+            if(normalise) {
+                resultsNoAdaptation = resultsMote.get(0).get(0).get(0);
+            }
+            resultsMote.remove(0);
             for (Map.Entry<Integer, HashMap<Integer, List<Double>>> moteEntry : resultsMote.entrySet()) {
                 for (Map.Entry<Integer,List<Double>> moteEntry3 : moteEntry.getValue().entrySet()) {
                     List<Double> finalResults = moteEntry3.getValue();
                     List<Double> resultsRelativeToNoAdaptation = new ArrayList<>();
                     for(double result : finalResults){
-                        double newResult = result/resultsNoAdaptation.get(index);
+                        double newResult = result/resultsNoAdaptation;
                         resultsRelativeToNoAdaptation.add(newResult);
                     }
-                    //dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
                     dataset.add(resultsRelativeToNoAdaptation,"" ,moteEntry.getKey());
-                    System.out.println(finalResults.size());
                     legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
 
                 }
@@ -96,9 +96,7 @@ public class Boxplot {
             for (Map.Entry<Integer, HashMap<Integer, List<Integer>>> moteEntry : resultsMote.entrySet()) {
                 for (Map.Entry<Integer,List<Integer>> moteEntry3 : moteEntry.getValue().entrySet()) {
                     List<Integer> finalResults = moteEntry3.getValue();
-                    //dataset.add(finalResults, "Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey(),moteEntry.getKey());
                     dataset.add(finalResults, "",moteEntry.getKey());
-                    System.out.println(finalResults.size());
                     legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
                 }
             }
@@ -109,40 +107,37 @@ public class Boxplot {
 
     private void createChartPanel(ArrayList<Mote>motes,int index,int data) {
         CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis("Air-Quality");
+        NumberAxis yAxis = null;
         if(data==0) {
             yAxis = new NumberAxis("Air-Quality");
         }
         else{
             yAxis = new NumberAxis("Number of  adaptations");
         }
-        CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer(legend);
+        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
         System.out.println(dataset.getMeanValue(0,0));
-        renderer.setOutlierRadius(15.0);
         renderer.setFillBox(true);
         renderer.setUseOutlinePaintForWhiskers(true);
         yAxis.setAutoRangeIncludesZero(false);
         renderer.setSeriesToolTipGenerator(1, new BoxAndWhiskerToolTipGenerator());
         renderer.setMedianVisible(true);
-        renderer.setMeanVisible(true);
-        System.out.println("Size : " + dataset.getColumnKeys().size());
+        renderer.setMeanVisible(false);
         plot = new CategoryPlot(dataset, xAxis, yAxis, renderer);
         plot.getDomainAxis(0).setVisible(false);
         plot.setDrawingSupplier(new ChartDrawingSupplier());
         LegendItemCollection legendList = new LegendItemCollection();
-
         for(int i=0;i<legend.size();i++){
             LegendItem newLegend = new LegendItem(legend.get(i),clut.get(i));
             legendList.add(newLegend);
         }
         plot.setFixedLegendItems(legendList);
-        JFreeChart chart = new JFreeChart("Mote : " + motes.get(index).getEUI(), plot);
+        JFreeChart chart = new JFreeChart("Cyclist : " + motes.get(index).getEUI(), plot);
         chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);
     }
 
 
-    private void createControlPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data) {
+    private void createControlPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer,List<Double>>>> airQuality, HashMap<Mote,HashMap<Integer,HashMap<Integer,List<Integer>>>> adaptations,ArrayList<Mote> motes, int index,int data,boolean normalise) {
         controlPanel = new JPanel();
         int index2 = index;
         controlPanel.add(new JButton(new AbstractAction("\u22b2Prev") {
@@ -153,7 +148,7 @@ public class Boxplot {
                     Window window = javax.swing.SwingUtilities.getWindowAncestor(controlPanel);
                     window.dispose();
                     JFrame frame = new JFrame();
-                    Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2, data - 1);
+                    Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2, data - 1,normalise);
                     frame.add(boxplot.getChartPanel(), BorderLayout.CENTER);
                     frame.add(boxplot.getControlPanel(), BorderLayout.SOUTH);
                     frame.pack();
@@ -164,7 +159,7 @@ public class Boxplot {
                         Window window = javax.swing.SwingUtilities.getWindowAncestor(controlPanel);
                         window.dispose();
                         JFrame frame = new JFrame();
-                        Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2 - 1, data + 1);
+                        Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2 - 1, data + 1,normalise);
                         frame.add(boxplot.getChartPanel(), BorderLayout.CENTER);
                         frame.add(boxplot.getControlPanel(), BorderLayout.SOUTH);
                         frame.pack();
@@ -182,7 +177,7 @@ public class Boxplot {
                     Window window = javax.swing.SwingUtilities.getWindowAncestor(controlPanel);
                     window.dispose();
                     JFrame frame = new JFrame();
-                    Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2, 1);
+                    Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2, 1,normalise);
                     frame.add(boxplot.getChartPanel(), BorderLayout.CENTER);
                     frame.add(boxplot.getControlPanel(), BorderLayout.SOUTH);
                     frame.pack();
@@ -193,7 +188,7 @@ public class Boxplot {
                         Window window = javax.swing.SwingUtilities.getWindowAncestor(controlPanel);
                         window.dispose();
                         JFrame frame = new JFrame();
-                        Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2 + 1, 0);
+                        Boxplot boxplot = new Boxplot(airQuality, adaptations, motes, index2 + 1, 0,normalise);
                         frame.add(boxplot.getChartPanel(), BorderLayout.CENTER);
                         frame.add(boxplot.getControlPanel(), BorderLayout.SOUTH);
                         frame.pack();
@@ -228,9 +223,7 @@ public class Boxplot {
 
             }
         }));
-
     }
-
     public ChartPanel getChartPanel() {
         return chartPanel;
     }

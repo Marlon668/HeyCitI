@@ -53,9 +53,8 @@ public class SimplePollutionHeuristic implements RoutingHeuristic {
 
         double pollutionValue = this.env.getDataBetweenPoints(begin,end, 0.1);
 
-        //System.out.println(pollutionValue);
         // The lower the pollution level, the better the heuristic
-        return pollutionValue*pollutionValue*pollutionValue *MapHelper.distance(begin,end)*pollutionValue*10;
+        return pollutionValue*pollutionValue*pollutionValue*MapHelper.distance(begin,end)*10;
     }
 
     @Override

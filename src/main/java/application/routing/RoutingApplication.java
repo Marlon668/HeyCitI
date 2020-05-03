@@ -26,6 +26,22 @@ public abstract class RoutingApplication extends Application implements Cloneabl
     protected HashMap<Mote,Double>airQualityRun;
     protected HashMap<Mote,Double> distances;
     protected HashMap<Mote,List<Pair<Pair<Double,Double>,Pair<Double,Double>>>> alternativeRoute;
+    protected Map<Mote,Double>predicted;
+    protected Map<Mote,Double> amountWaypoints;
+    protected Map<Mote,List<Double>> predictiveWaypoints;
+
+    public Map<Mote,List<Double>> getPredictiveWaypoints(){
+        return predictiveWaypoints;
+    }
+
+    public Map<Mote,Double> getAmountWaypoints(){
+        return amountWaypoints;
+    }
+
+
+    public Map<Mote,Double> getPredicted(){
+        return predicted;
+    }
     /**
      Sets the buffersizeWidth used by this application
      How much paths could we save in each step in the adaptation algorithm
@@ -131,6 +147,7 @@ public abstract class RoutingApplication extends Application implements Cloneabl
 
     public abstract void handleRouteRequestWithoutNetworkForRun(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment);
 
+    public abstract void handleRouteRequestWithoutNetworkForRun2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment);
     /**
      * Handles a route request without sending packets
      * It gives directly the next part of the route to the mote

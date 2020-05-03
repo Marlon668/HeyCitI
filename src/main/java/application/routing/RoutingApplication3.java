@@ -147,6 +147,11 @@ public class RoutingApplication3 extends RoutingApplication implements Cloneable
     }
 
     @Override
+    public void handleRouteRequestWithoutNetworkForRun2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
+
+    }
+
+    @Override
     public void handleRouteRequestWithoutNetwork(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
         GeoPosition endPosition = mote.getDestination();

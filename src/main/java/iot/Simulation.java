@@ -187,6 +187,7 @@ public class Simulation {
     public GenericFeedbackLoop getAdaptationAlgorithm() {
         return approach;
     }
+
     /**
      * Sets the GenericFeedbackLoop used in th simulation.
      * @param approach  The GenericFeedbackLoop to use in the simulation.
@@ -212,8 +213,6 @@ public class Simulation {
         this.approach = approach;
         getApproach().start();
     }
-    // endregion
-
 
     /**
      * Gets the probability with which a mote should be active from the input profile of the current simulation.
@@ -267,7 +266,6 @@ public class Simulation {
                 }
             }
         }
-        //routingApplication.destruct();
         setupSingleRun(true);
 
     }
@@ -303,13 +301,43 @@ public class Simulation {
         this.getEnvironment().getClock().tick(1);
     }
 
+    /**
+     * Simulate a single step in the simulator but isn't visible
+     * This run is intended for getting data to visualise the results of doing adaptations
+     */
+    public void simulateVisualiseRun2(PollutionEnvironment Pollenvironment){
+        this.getEnvironment().getMotes().stream()
+            .filter(Mote::isEnabled)
+            .filter(mote-> !(mote.isArrivedToDestination()))
+            .filter(mote-> mote instanceof UserMote)
+            .filter(mote -> mote.getPath().getWayPoints().size() > wayPointMap.get(mote))
+            .filter(mote -> TimeHelper.secToMili( 1 / mote.getMovementSpeed()) <
+                TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay() - timeMap.get(mote).toNanoOfDay()))
+            .filter(mote -> TimeHelper.nanoToMili(this.getEnvironment().getClock().getTime().toNanoOfDay()) > TimeHelper.secToMili(Math.abs(mote.getStartMovementOffset())))
+            .forEach(mote -> {
+                if(environment.get().getClock().getTime().isAfter(startTime)) {
+                    timeMap.put(mote, this.getEnvironment().getClock().getTime());
+                    if (!this.getEnvironment().getMapHelper().toMapCoordinate(mote.getPath().getWayPoints().get(wayPointMap.get(mote))).equals(mote.getPosInt())) {
+                        this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
+                    } else {
+                        routingApplication.handleRouteRequestWithoutNetworkForRun2((UserMote) mote, environment.get(), sensorEnvironment);
+                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
+                        wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+
+                    }
+                }
+            });
+        Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
+        this.getEnvironment().getClock().tick(1);
+    }
+
 
     /**
      * Simulate a single step in the simulator.
      * @param Pollenvironment the pollution environment used in the environment
      */
     public synchronized void simulateStep(PollutionEnvironment Pollenvironment) {
-        //noinspection SimplifyStreamApiCallChains
         this.getEnvironment().getMotes().stream()
             .filter(Mote::isEnabled)
             .filter(mote-> !(mote.isArrivedToDestination()))
@@ -333,8 +361,8 @@ public class Simulation {
                         else{
                             this.getEnvironment().moveMote(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         }
-                }
-                else {
+                    }
+                    else {
                         if(!(mote instanceof UserMote) ||(getApproach() == null || !getApproach().getName().equals("Air Quality")))
                         {
                             // Remove the visibility of already visited waypoints of the followed path
@@ -441,16 +469,16 @@ public class Simulation {
                                     }
                                 }
 
-                                    else {
-                                        setupSingleRun(true);
-                                    }
+                                else {
+                                    setupSingleRun(true);
                                 }
-
                             }
+
                         }
-
-
                     }
+
+
+                }
 
             });
 
@@ -542,21 +570,21 @@ public class Simulation {
     public boolean isFinished() {
         if(!this.continueSimulation.test(this.getEnvironment()) && !this.finished) {
             if (simulationRunner.getMultipleRun() && getApproach().getName()!="No Adaptation") {
-                    this.finished = true;
-                    HashMap<Mote, Pair<Long, Long>> time = new HashMap<>();
-                    HashMap<Mote, Pair<Double, Integer>> result = new HashMap<>();
-                    for (Mote mote : getEnvironment().getMotes()) {
-                        if (mote instanceof UserMote) {
-                            double resultRoute = routeEvaluator.getTotalCostPath(mote.getEUI());
-                            int amountAdaptations = routingApplication.getAmountAdaptations().get(mote.getEUI());
-                            result.put(mote, new Pair(resultRoute, amountAdaptations));
-                            long averageTime = routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getRight() / routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getLeft();
-                            time.put(mote, new Pair(averageTime, routingApplication.getMaxTime().get(mote.getEUI())));
-                        }
+                this.finished = true;
+                HashMap<Mote, Pair<Long, Long>> time = new HashMap<>();
+                HashMap<Mote, Pair<Double, Integer>> result = new HashMap<>();
+                for (Mote mote : getEnvironment().getMotes()) {
+                    if (mote instanceof UserMote) {
+                        double resultRoute = routeEvaluator.getTotalCostPath(mote.getEUI());
+                        int amountAdaptations = routingApplication.getAmountAdaptations().get(mote.getEUI());
+                        result.put(mote, new Pair(resultRoute, amountAdaptations));
+                        long averageTime = routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getRight() / routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getLeft();
+                        time.put(mote, new Pair(averageTime, routingApplication.getMaxTime().get(mote.getEUI())));
                     }
-                    simulationRunner.multipleRun(time, result);
                 }
-             else {
+                simulationRunner.multipleRun(time, result);
+            }
+            else {
                 String message = "Evaluation of the path \n";
                 for (Mote mote : getEnvironment().getMotes()) {
                     if (mote instanceof UserMote) {
@@ -763,7 +791,7 @@ public class Simulation {
                     if (getApproach() != null && getApproach().getName() == "Air Quality") {
                         message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) +
                             " , Amount adaptations: " + routingApplication.getAmountAdaptations().get(mote.getEUI())+ "Distance : " + distanceMote.get(mote) +
-                           "\n";
+                            "\n";
 
                     } else {
                         message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + "Distance : " + distanceMote.get(mote) + "\n";

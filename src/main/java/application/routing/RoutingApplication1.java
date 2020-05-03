@@ -58,6 +58,7 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
 
     private Map<Long, Pair<Integer, Long>> averageTimeForDecisionPerMote;
 
+
     @Override
     public Map<Long, Pair<Integer, Long>> getAverageTimeForDecisionPerMote() {
         return averageTimeForDecisionPerMote;
@@ -130,7 +131,9 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
         this.distances = new HashMap<>();
         this.adaptationPoints = new HashMap<>();
         this.visualiseRun = new HashMap<>();
+        this.predicted = new HashMap<>();
         this.airQualityRun = new HashMap<>();
+        this.amountWaypoints =new HashMap<>();
         this.routes = new HashMap<>();
         this.lastPositions = new HashMap<>();
         this.graph = environment.getGraph();
@@ -140,12 +143,15 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
         this.amountAdaptations = new HashMap<>();
         this.averageTimeForDecisionPerMote = new HashMap<>();
         this.maxTime = new HashMap<>();
+        this.predictiveWaypoints = new HashMap<>();
         for (Mote mote : environment.getMotes()) {
             if (mote instanceof UserMote) {
                 long time = 0;
+                amountWaypoints.put(mote,0.0);
                 amountAdaptations.put(mote.getEUI(), 0);
                 averageTimeForDecisionPerMote.put(mote.getEUI(), new Pair(0, time));
                 maxTime.put(mote.getEUI(), time);
+                predictiveWaypoints.put(mote,new ArrayList<>());
 
             }
         }
@@ -155,13 +161,15 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
     /**
      * Handles a route request without sending packets
      * It gives directly the next part of the route to the mote
+     * This method is used for gathering experimental results
+     * It is used to visualise the result of using adaptations
      *
      * @param mote Usermote where we would send a next part of the route to it
      * @param environment the environment that we use for the simulation
+     * @param sensorEnvironment the sensor environement that we use for the simulation
      */
     public void handleRouteRequestWithoutNetworkForRun(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
-        GeoPosition endPosition = mote.getDestination();
         // Use the routing algorithm to calculate the K best paths for the mote
         List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
         putKBestPathsBuffers(mote.getEUI(), routeMote);
@@ -200,19 +208,23 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                         adaptationPoints.get(mote).add(distances.get(mote));
                         distances.put(mote,newDistance);
                         visualiseRun.get(mote).add(newResult);
+                        predicted.put(mote,predicted.get(mote)+newAirQuality);
                         double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                         airQualityRun.put(mote,accumalatedCostConnection);
                         this.routes.put(mote.getEUI(), bestPath);
+                        amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
                     }
                     else{
                         double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
                         Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
+                        predicted.put(mote,predicted.get(mote)+newAirQuality);
                         visualiseRun.get(mote).add(newResult);
                         double newDistance = distances.get(mote) + MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
                         distances.put(mote,newDistance);
                         double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                         airQualityRun.put(mote,accumalatedCostConnection);
                         this.routes.put(mote.getEUI(), bestPath);
+                        amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
                     }
                 }
                 else{
@@ -224,7 +236,10 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                     adaptationPoints.put(mote,airValues);
                     List<Pair<Double,Double>> airQuality = new ArrayList<>();
                     Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
+                    airQuality.add(resultsFinal);
                     visualiseRun.put(mote,airQuality);
+                    amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                    predicted.put(mote,bestPath.getLeft());
                     this.routes.put(mote.getEUI(),bestPath);
                     double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                     airQualityRun.put(mote,accumalatedCostConnection);
@@ -240,7 +255,9 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
                 Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
                 visualiseRun.get(mote).add(newResult);
+                predicted.put(mote,predicted.get(mote)+newAirQuality);
                 distances.put(mote,newDistance);
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
                 double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                 airQualityRun.put(mote,accumalatedCostConnection);
                 this.routes.put(mote.getEUI(), bestPath);
@@ -256,8 +273,11 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 adaptationPoints.put(mote,airValues);
                 List<Pair<Double,Double>> airQuality = new ArrayList<>();
                 Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
+                airQuality.add(resultsFinal);
                 distances.put(mote,distanceLastMote);
                 visualiseRun.put(mote,airQuality);
+                predicted.put(mote,bestPath.getLeft());
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
                 this.routes.put(mote.getEUI(),bestPath);
                 double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                 airQualityRun.put(mote,accumalatedCostConnection);
@@ -268,6 +288,157 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
                 double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
                 Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
                 visualiseRun.get(mote).add(newResult);
+                predicted.put(mote,predicted.get(mote)+newAirQuality);
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                distances.put(mote,distance);
+                double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                this.airQualityRun.put(mote,accumalatedCostConnection);
+                this.routes.put(mote.getEUI(), bestPath);
+            }
+        }
+        Path motePath = mote.getPath();
+        motePath.addPosition(bestPath.getRight().get(1));
+        mote.setPath(motePath.getWayPoints());
+        double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+        predictiveWaypoints.get(mote).add(accumulatedCostConnection);
+        this.routes.get(mote.getEUI()).getRight().remove(0);
+    }
+
+    /**
+     * Handles a route request without sending packets
+     * It gives directly the next part of the route to the mote
+     * This is for gathering all the predictive values of the air quality of a path calculated by the routing
+     * application
+     * Used for visualising the difference of the predictive values and effective values of the air-
+     * quality for a certain number of runs by using a boxplot
+     *
+     * @param mote Usermote where we would send a next part of the route to it
+     * @param environment the environment that we use for the simulation
+     * @param sensorEnvironment the sensor environment that we use for the simulation
+     */
+    @Override
+    public void handleRouteRequestWithoutNetworkForRun2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
+        GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
+        // Use the routing algorithm to calculate the K best paths for the mote
+        List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
+        putKBestPathsBuffers(mote.getEUI(), routeMote);
+        Pair<Double, List<GeoPosition>> bestPath;
+        if (bufferKBestPaths.get(mote.getEUI()).size() == bufferSizeHeight) {
+            bestPath = takeBestPath(bufferKBestPaths.get(mote.getEUI()));
+            bufferKBestPaths = new HashMap<>();
+            if (bestPath.getRight().size() > 0) {
+                if (routes.get(mote.getEUI()) != null) {
+                    List<GeoPosition> path = routes.get(mote.getEUI()).getRight();
+                    if (!(bestPath.getRight().equals(path))) {
+                        int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                        getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                        List<Pair<Double,Double>> visualisedResults = visualiseRun.get(mote);
+                        Pair<Double,Double> lastPoint = visualisedResults.get(visualisedResults.size()-1);
+                        double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
+                        List<Pair<Pair<Double,Double>,Pair<Double,Double>>> alternativeRoutesMote = alternativeRoute.get(mote);
+                        Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
+                        double newAccumulatedCost = 0;
+                        GeoPosition lastWaypoint = null;
+                        for(GeoPosition i : path)
+                        {
+                            if(lastWaypoint == null)
+                            {
+                                lastWaypoint = i;
+                            }
+                            else{
+                                double accumulatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(lastWaypoint,i);
+                                newAccumulatedCost = newAccumulatedCost + accumulatedCostConnection;
+                                lastWaypoint = i;
+                            }
+                        }
+                        Pair<Double,Double> oldResult = new Pair<>(newAccumulatedCost+airQualityRun.get(mote),distances.get(mote));
+                        alternativeRoutesMote.add(new Pair<>(lastPoint,oldResult));
+                        double newDistance = distances.get(mote) + MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
+                        adaptationPoints.get(mote).add(distances.get(mote));
+                        distances.put(mote,newDistance);
+                        visualiseRun.get(mote).add(newResult);
+                        predicted.put(mote,predicted.get(mote)+newAirQuality);
+                        double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                        airQualityRun.put(mote,accumalatedCostConnection);
+                        this.routes.put(mote.getEUI(), bestPath);
+                        amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                    }
+                    else{
+                        double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
+                        Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
+                        predicted.put(mote,predicted.get(mote)+newAirQuality);
+                        visualiseRun.get(mote).add(newResult);
+                        double newDistance = distances.get(mote) + MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
+                        distances.put(mote,newDistance);
+                        double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                        airQualityRun.put(mote,accumalatedCostConnection);
+                        this.routes.put(mote.getEUI(), bestPath);
+                        amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                    }
+                }
+                else{
+                    int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                    double distanceLastMote = MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
+                    distances.put(mote,distanceLastMote);
+                    List<Double> airValues = new ArrayList<>();
+                    adaptationPoints.put(mote,airValues);
+                    List<Pair<Double,Double>> airQuality = new ArrayList<>();
+                    Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
+                    airQuality.add(resultsFinal);
+                    visualiseRun.put(mote,airQuality);
+                    amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                    predicted.put(mote,bestPath.getLeft());
+                    this.routes.put(mote.getEUI(),bestPath);
+                    double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                    airQualityRun.put(mote,accumalatedCostConnection);
+                    alternativeRoute.put(mote,new ArrayList<>());
+                }
+            }
+            else {
+                bestPath = this.routes.get(mote.getEUI());
+                this.routes.put(mote.getEUI(), bestPath);
+                List<Pair<Double,Double>> visualisedResults = visualiseRun.get(mote);
+                Pair<Double,Double> lastPoint = visualisedResults.get(visualisedResults.size()-1);
+                double newDistance = distances.get(mote) + (MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1)))*1000;
+                double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
+                Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
+                visualiseRun.get(mote).add(newResult);
+                predicted.put(mote,predicted.get(mote)+newAirQuality);
+                distances.put(mote,newDistance);
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                airQualityRun.put(mote,accumalatedCostConnection);
+                this.routes.put(mote.getEUI(), bestPath);
+            }
+        } else {
+            if (routes.get(mote.getEUI()) == null) {
+                bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
+                this.routes.put(mote.getEUI(), bestPath);
+                int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
+                double distanceLastMote = MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
+                List<Double> airValues = new ArrayList<>();
+                adaptationPoints.put(mote,airValues);
+                List<Pair<Double,Double>> airQuality = new ArrayList<>();
+                Pair<Double,Double> resultsFinal = new Pair<>(bestPath.getLeft(),0.0);
+                airQuality.add(resultsFinal);
+                distances.put(mote,distanceLastMote);
+                visualiseRun.put(mote,airQuality);
+                predicted.put(mote,bestPath.getLeft());
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
+                this.routes.put(mote.getEUI(),bestPath);
+                double accumalatedCostConnection = this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
+                airQualityRun.put(mote,accumalatedCostConnection);
+                alternativeRoute.put(mote,new ArrayList<>());
+            } else {
+                bestPath = this.routes.get(mote.getEUI());
+                double distance = distances.get(mote) + MapHelper.distance(bestPath.getRight().get(0),bestPath.getRight().get(1))*1000;
+                double newAirQuality = airQualityRun.get(mote) + bestPath.getLeft();
+                Pair<Double,Double> newResult = new Pair<>(newAirQuality,distances.get(mote));
+                visualiseRun.get(mote).add(newResult);
+                predicted.put(mote,predicted.get(mote)+newAirQuality);
+                amountWaypoints.put(mote,amountWaypoints.get(mote)+1);
                 distances.put(mote,distance);
                 double accumalatedCostConnection = airQualityRun.get(mote) + this.pathFinder.getHeuristic().calculateCostBetweenTwoNeighbours(bestPath.getRight().get(0),bestPath.getRight().get(1));
                 this.airQualityRun.put(mote,accumalatedCostConnection);
@@ -286,11 +457,11 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
      *
      * @param mote Usermote where we would send a next part of the route to it
      * @param environment the environment that we use for the simulation
+     * @param sensorEnvironment the sensor envrionement that we use for the simulation
      */
     @Override
     public void handleRouteRequestWithoutNetwork(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
             GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
-            GeoPosition endPosition = mote.getDestination();
             // Use the routing algorithm to calculate the K best paths for the mote
             List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
             putKBestPathsBuffers(mote.getEUI(), routeMote);
@@ -342,7 +513,7 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
      * and the values is the changed path
      *
      * @param environment the environment where we would do the simulation
-     * @param sensorEnvironment the sensorenvironment that we would use for the simulation
+     * @param sensorEnvironment the sensor environment that we would use for the simulation
      **/
     @Override
     public void calculateRoutingAdaptations(Environment environment, SensorEnvironment sensorEnvironment) {
@@ -402,15 +573,16 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
 
     /**
      * Handles a route request without sending packets
-     * It gives directly the next part of the route to the mote
+     * It calculates every adaptation that would be made before simulating the run visually
+     * This results in a clear view if there are a lot of cyclists in the environment
      *
      * @param mote Usermote where we would send a next part of the route to it
      * @param environment the environment that we use for the simulation
+     * @param sensorEnvironment the sensor environment that we use for the simulation
      */
     @Override
     protected List<GeoPosition> handleRouteRequestWithoutNetwork2(UserMote mote, Environment environment, SensorEnvironment sensorEnvironment) {
         GeoPosition currentPosition= environment.getMapHelper().toGeoPosition(mote.getPosInt());
-        GeoPosition endPosition = mote.getDestination();
         // Use the routing algorithm to calculate the K best paths for the mote
         List<Pair<Double,List<GeoPosition>>> routeMote = this.pathFinder.retrieveKPaths(graph,currentPosition,mote.getDestination(),bufferSizeWidth);
         putKBestPathsBuffers(mote.getEUI(), routeMote);
@@ -468,10 +640,8 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
             }
         }
         Path motePath = mote.getPath();
-        System.out.println(bestPath.getRight().get(0));
         motePath.addPosition(bestPath.getRight().get(0));
         mote.setPath(motePath.getWayPoints());
-        //this.routes.get(mote.getEUI()).getRight().remove(0);
         if(send){
             return changedPath;
         }

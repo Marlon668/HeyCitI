@@ -189,41 +189,6 @@ public class ConfigurationWriter {
             }
 
             // ---------------
-            //    Information
-            // ---------------
-
-            /**
-            Element information = doc.createElement("information");
-
-            for (long connection : simulationRunner.getInformation().keySet()) {
-                Element informationElement = doc.createElement("connection");
-
-                Element connectionId = doc.createElement("connectionId");
-                connectionId.appendChild(doc.createTextNode(Long.toUnsignedString(connection)));
-
-                int time = 0;
-
-                Element timeElement = doc.createElement("times");
-
-                for(double value : simulationRunner.getInformation().get(connection))
-                {
-                    Element timeSubElement = doc.createElement("time");
-
-                    timeSubElement.setAttribute("Val", Double.toString(value));
-                    timeSubElement.setAttribute("time", Integer.toString(time));
-                    timeElement.appendChild(timeSubElement);
-                    time += 4;
-                }
-                informationElement.appendChild(connectionId);
-                informationElement.appendChild(timeElement);
-                information.appendChild(informationElement);
-
-
-            }
-             **/
-
-
-            // ---------------
             //    Data dump
             // ---------------
 

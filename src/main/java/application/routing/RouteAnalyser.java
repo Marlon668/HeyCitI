@@ -36,9 +36,6 @@ public class RouteAnalyser extends Analyser{
     public boolean isBetterPath(Pair<Double, List<GeoPosition>> route1, Pair<Double,List<GeoPosition>> route2) {
         if (!(route1 == null)) {
             Double accumulatedCost1 = calculateHeuristicPath(route1.getRight());
-            System.out.println("Better path: " + !(threshold *accumulatedCost1 >= route1.getLeft()));
-            System.out.println("New accumulated cost : " + threshold *accumulatedCost1);
-            System.out.println("Old cost: " + route1.getLeft());
             return !(threshold * accumulatedCost1 > route2.getLeft());
         } else {
             return false;
@@ -84,9 +81,6 @@ public class RouteAnalyser extends Analyser{
                 lastWaypoint = i;
             }
         }
-        System.out.println("Has changed enough: " + (threshold *newAccumulatedCost >= route1.getLeft()));
-        System.out.println("New accumulated cost : " + threshold *newAccumulatedCost);
-        System.out.println("Old cost: " + route1.getLeft());
         return threshold *newAccumulatedCost >= route1.getLeft();
     }
 }

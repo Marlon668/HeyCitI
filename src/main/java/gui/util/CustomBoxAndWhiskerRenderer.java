@@ -170,7 +170,7 @@ public class CustomBoxAndWhiskerRenderer extends BoxAndWhiskerRenderer {
             if (yMean != null) {
                 yyAverage = rangeAxis.valueToJava2D(yMean.doubleValue(),
                     dataArea, location);
-                aRadius = state.getBarWidth() / 10;
+                aRadius = state.getBarWidth() / 40;
                 // here we check that the average marker will in fact be
                 // visible before drawing it...
                 if ((yyAverage > (dataArea.getMinY() - aRadius))
@@ -204,7 +204,7 @@ public class CustomBoxAndWhiskerRenderer extends BoxAndWhiskerRenderer {
         g2.setPaint(itemPaint);
 
         // draw outliers
-        double oRadius = outlierRadius == null? state.getBarWidth()/3: outlierRadius;    // outlier radius
+        double oRadius = outlierRadius == null? state.getBarWidth()/40: outlierRadius;    // outlier radius
         java.util.List outliers = new ArrayList();
         OutlierListCollection outlierListCollection
             = new OutlierListCollection();
@@ -220,13 +220,13 @@ public class CustomBoxAndWhiskerRenderer extends BoxAndWhiskerRenderer {
                 Number maxOutlier = bawDataset.getMaxOutlier(row, column);
                 Number minRegular = bawDataset.getMinRegularValue(row, column);
                 Number maxRegular = bawDataset.getMaxRegularValue(row, column);
-                if (outlier > maxRegular.doubleValue()) {
+                if (outlier > (maxRegular.doubleValue()+0.02)) {
                     yyOutlier = rangeAxis.valueToJava2D(outlier, dataArea,
                         location);
                     outliers.add(new Outlier(xx + state.getBarWidth() / 2.0,
                         yyOutlier, oRadius));
                 }
-                else if (outlier < minRegular.doubleValue()) {
+                else if (outlier < (minRegular.doubleValue()-0.02)) {
                     yyOutlier = rangeAxis.valueToJava2D(outlier, dataArea,
                         location);
                     outliers.add(new Outlier(xx + state.getBarWidth() / 2.0,
@@ -247,14 +247,7 @@ public class CustomBoxAndWhiskerRenderer extends BoxAndWhiskerRenderer {
                 OutlierList list = (OutlierList) iterator.next();
                 Outlier outlier = list.getAveragedOutlier();
                 Point2D point = outlier.getPoint();
-
-                if (list.isMultiple()) {
-                    drawMultipleEllipse(point, state.getBarWidth(), oRadius,
-                        g2);
-                }
-                else {
-                    drawEllipse(point, oRadius, g2);
-                }
+                drawEllipse(point, oRadius, g2);
             }
         }
         // collect entity and tool tip information...
