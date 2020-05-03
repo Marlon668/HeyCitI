@@ -2,21 +2,16 @@ package gui.util;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import com.orsonpdf.PDFDocument;
-import com.orsonpdf.PDFGraphics2D;
-import com.orsonpdf.Page;
+import gui.util.orsonpdf.PDFDocument;
+import gui.util.orsonpdf.PDFGraphics2D;
+import gui.util.orsonpdf.Page;
 import gui.MainGUI;
 import iot.Result;
 import iot.networkentity.Mote;

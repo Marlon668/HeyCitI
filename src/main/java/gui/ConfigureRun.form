@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="gui.ConfigureRun">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="750" height="400"/>
+    </constraints>
+    <properties>
+      <minimumSize width="750" height="400"/>
+      <preferredSize width="750" height="400"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <tabbedpane id="60f73" binding="tabbedPane1" default-binding="true">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="200" height="200"/>
+          </grid>
+        </constraints>
+        <properties>
+          <enabled value="true"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <grid id="f3bd2" layout-manager="GridLayoutManager" row-count="4" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Setting"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="38d2b" class="javax.swing.JButton" binding="classGenerateButton">
+                <constraints>
+                  <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Generate"/>
+                </properties>
+              </component>
+              <component id="fc12c" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="119" height="28"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Min. Buffer size (height)"/>
+                </properties>
+              </component>
+              <component id="eaaca" class="javax.swing.JSpinner" binding="bufferProbHeightMinSpinner">
+                <constraints>
+                  <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="103" height="28"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="e9979" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="119" height="28"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Min. Buffer size (width)"/>
+                </properties>
+              </component>
+              <component id="7572f" class="javax.swing.JSpinner" binding="bufferProbWidthMinSpinner">
+                <constraints>
+                  <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="103" height="28"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="4214a" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="119" height="28"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Max. Buffer size (height)"/>
+                </properties>
+              </component>
+              <component id="2bed6" class="javax.swing.JSpinner" binding="bufferProbHeightMaxSpinner">
+                <constraints>
+                  <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="103" height="28"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="71be" class="javax.swing.JSpinner" binding="bufferProbWidthMaxSpinner">
+                <constraints>
+                  <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="103" height="28"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="5a388" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="119" height="28"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Max. Buffer size (width)"/>
+                </properties>
+              </component>
+              <component id="73d83" class="javax.swing.JButton" binding="SaveButton">
+                <constraints>
+                  <grid row="1" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Save"/>
+                </properties>
+              </component>
+              <component id="2bfab" class="javax.swing.JButton" binding="openButton">
+                <constraints>
+                  <grid row="2" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Open"/>
+                </properties>
+              </component>
+              <component id="b8838" class="javax.swing.JButton" binding="Show">
+                <constraints>
+                  <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Show"/>
+                </properties>
+              </component>
+              <component id="5300b" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Analysing Method"/>
+                </properties>
+              </component>
+              <component id="4f8fa" class="javax.swing.JSpinner" binding="analysingMethod">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="7f344" class="javax.swing.JSpinner" binding="pathProbSpinner">
+                <constraints>
+                  <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="49200" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="119" height="28"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Better path"/>
+                </properties>
+              </component>
+              <component id="8a140" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Normalise"/>
+                </properties>
+              </component>
+              <component id="f8dc6" class="javax.swing.JSpinner" binding="normaliseSpinner">
+                <constraints>
+                  <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+            </children>
+          </grid>
+        </children>
+      </tabbedpane>
+    </children>
+  </grid>
+</form>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Environment>
+    <Sources>
+        <FunctionSource>
+            <Position>50.879128, 4.700221</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>
+                2000*gauss(300,100)*2.35+
+                300*gauss(1100,30)*2.35+
+                300*gauss(1600,30)*2.35+
+                 1800*gauss(2400,100)*2.35
+                + 500*gauss(2900,100)*2.35+1
+            </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.88392179225454, 4.692106246948242</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>                 4000*gauss(300,200)*2.35 +                 2500*gauss(2200,150)*2.35 +                 500*gauss(2900,100)*2.35+1             </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.88018529048717, 4.709787368774414</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>
+                1000*gauss(300,50)*2.35 +
+                1000*gauss(2100,50)*2.35 +
+                300*gauss(800,10)*2.35 +
+                300*gauss(1200,10)*2.35 +
+                300*gauss(1600,10)*2.35+1
+            </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.874932020410206, 4.6945953369140625</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>                 1000*gauss(300,50)*2.35 +                 1000*gauss(2100,50)*2.35 +                 300*gauss(800,10)*2.35 +                 300*gauss(1200,10)*2.35 +                 300*gauss(1600,10)*2.35+1             </Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.87471537800234, 4.707126617431641</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>4000*gauss(2000,100)</Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.88354274051537, 4.700946807861328</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>4000*gauss(1700,100)</Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.88132251839807, 4.689960479736328</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>2000*gauss(700,30)</Function>
+        </FunctionSource>
+        <FunctionSource>
+            <Position>50.87650264775004, 4.684209823608398</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>4000*gauss(400,10)</Function>
+        </FunctionSource>
+    </Sources>
+    <Sensors>
+        <Sensor>
+            <Position>50.88386764219489, 4.701032638549805</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.87487785990266, 4.707212448120117</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.875365302204784, 4.694681167602539</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.88386764219489, 4.692363739013672</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.87918, 4.700613136810971</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.88018529048717, 4.709787368774414</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.88132251839807, 4.690132141113281</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.87081564245126, 4.700002670288086</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.87032815256481, 4.684381484985352</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.8865750680795, 4.710988998413086</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.8762860126433, 4.684381484985352</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.888740895502316, 4.699745178222656</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.868161469162345, 4.71588134765625</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+        <Sensor>
+            <Position>50.889444767733565, 4.684038162231445</Position>
+            <MaxValue>255.0</MaxValue>
+            <NoiseRatio>0</NoiseRatio>
+        </Sensor>
+    </Sensors>
+</Environment>

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <map>
+        <region>
+            <origin>
+                <latitude>50.866714802830494</latitude>
+                <longitude>4.6808624267578125</longitude>
+            </origin>
+            <size>
+                <width>2773</width>
+                <height>2773</height>
+            </size>
+        </region>
+    </map>
+    <characteristics>
+        <regionProperty numberOfZones="49"/>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+        <row>City-City-City-City-City-City-City</row>
+    </characteristics>
+    <motes>
+        <userMote>
+            <devEUI>727156569393802495</devEUI>
+            <location>
+                <waypoint id="85"/>
+            </location>
+            <transmissionPower>14</transmissionPower>
+            <spreadingFactor>12</spreadingFactor>
+            <energyLevel>20</energyLevel>
+            <movementSpeed>1.0</movementSpeed>
+            <startMovementOffset>0</startMovementOffset>
+            <periodSendingPacket>30</periodSendingPacket>
+            <startSendingOffset>1</startSendingOffset>
+            <sensors>
+                <sensor SensorType="GPS"/>
+            </sensors>
+            <path/>
+            <userMoteState>true</userMoteState>
+            <destination id="109"/>
+        </userMote>
+    </motes>
+    <gateways>
+        <gateway>
+            <devEUI>3122003464731981774</devEUI>
+            <location>
+                <xPos>1265</xPos>
+                <yPos>561</yPos>
+            </location>
+            <transmissionPower>14</transmissionPower>
+            <spreadingFactor>12</spreadingFactor>
+        </gateway>
+    </gateways>
+    <wayPoints>
+        <wayPoint id="69">50.87421438857698,4.699970483779907</wayPoint>
+        <wayPoint id="70">50.8752637521456,4.697738885879517</wayPoint>
+        <wayPoint id="71">50.8747627686151,4.696204662322998</wayPoint>
+        <wayPoint id="72">50.87573088058567,4.7003138065338135</wayPoint>
+        <wayPoint id="73">50.87630632222735,4.7003889083862305</wayPoint>
+        <wayPoint id="74">50.876272472915716,4.696794748306274</wayPoint>
+        <wayPoint id="75">50.87518251193895,4.694541692733765</wayPoint>
+        <wayPoint id="76">50.874816929256404,4.694616794586182</wayPoint>
+        <wayPoint id="77">50.8760219872454,4.697695970535278</wayPoint>
+        <wayPoint id="78">50.87736917810648,4.6982645988464355</wayPoint>
+        <wayPoint id="79">50.87760611719554,4.698446989059448</wayPoint>
+        <wayPoint id="80">50.87706454036462,4.7005391120910645</wayPoint>
+        <wayPoint id="81">50.87766704419516,4.695582389831543</wayPoint>
+        <wayPoint id="82">50.87780243724243,4.691290855407715</wayPoint>
+        <wayPoint id="83">50.87587981910387,4.690818786621094</wayPoint>
+        <wayPoint id="84">50.87409252547001,4.691462516784668</wayPoint>
+        <wayPoint id="85">50.87604229694451,4.68867301940918</wayPoint>
+        <wayPoint id="86">50.87666512341922,4.688715934753418</wayPoint>
+        <wayPoint id="87">50.87674636104138,4.690647125244141</wayPoint>
+        <wayPoint id="88">50.87495910064039,4.691119194030762</wayPoint>
+        <wayPoint id="89">50.879156346079604,4.6921491622924805</wayPoint>
+        <wayPoint id="90">50.87961666612323,4.689059257507324</wayPoint>
+        <wayPoint id="91">50.87885848951058,4.688844680786133</wayPoint>
+        <wayPoint id="92">50.88042898451897,4.689359664916992</wayPoint>
+        <wayPoint id="93">50.881349594914795,4.690132141113281</wayPoint>
+        <wayPoint id="94">50.88064560036615,4.693608283996582</wayPoint>
+        <wayPoint id="95">50.87999574980355,4.697942733764648</wayPoint>
+        <wayPoint id="96">50.87912926828837,4.696869850158691</wayPoint>
+        <wayPoint id="97">50.878181535682046,4.69541072845459</wayPoint>
+        <wayPoint id="98">50.87346966461366,4.7055816650390625</wayPoint>
+        <wayPoint id="99">50.87368631281217,4.701333045959473</wayPoint>
+        <wayPoint id="100">50.874227928902535,4.702877998352051</wayPoint>
+        <wayPoint id="101">50.874661217243,4.704937934875488</wayPoint>
+        <wayPoint id="102">50.87625893318416,4.704294204711914</wayPoint>
+        <wayPoint id="103">50.87712546807231,4.704551696777344</wayPoint>
+        <wayPoint id="104">50.87674636104138,4.706053733825684</wayPoint>
+        <wayPoint id="105">50.87774828007073,4.706912040710449</wayPoint>
+        <wayPoint id="106">50.87650264775004,4.7094011306762695</wayPoint>
+        <wayPoint id="107">50.875636101280804,4.708242416381836</wayPoint>
+        <wayPoint id="108">50.874850779625284,4.707427024841309</wayPoint>
+        <wayPoint id="109">50.877423335718774,4.710731506347656</wayPoint>
+        <wayPoint id="110">50.87842524019322,4.708971977233887</wayPoint>
+        <wayPoint id="111">50.879048034820244,4.713006019592285</wayPoint>
+        <wayPoint id="112">50.878073222156836,4.700732231140137</wayPoint>
+        <wayPoint id="113">50.8773962569205,4.698972702026367</wayPoint>
+        <wayPoint id="114">50.878506474747056,4.699702262878418</wayPoint>
+        <wayPoint id="115">50.878777255570405,4.700045585632324</wayPoint>
+        <wayPoint id="116">50.878641865355405,4.700818061828613</wayPoint>
+        <wayPoint id="117">50.87937296784305,4.7003889083862305</wayPoint>
+        <wayPoint id="118">50.87921050161489,4.701976776123047</wayPoint>
+        <wayPoint id="119">50.87875017755885,4.702920913696289</wayPoint>
+        <wayPoint id="120">50.87918342385511,4.704165458679199</wayPoint>
+        <wayPoint id="121">50.878668943429886,4.705452919006348</wayPoint>
+        <wayPoint id="122">50.87921050161489,4.706225395202637</wayPoint>
+        <wayPoint id="123">50.87948127834716,4.706783294677734</wayPoint>
+        <wayPoint id="124">50.87972497606088,4.705710411071777</wayPoint>
+        <wayPoint id="125">50.880374830399816,4.7100019454956055</wayPoint>
+        <wayPoint id="126">50.87888556745916,4.708113670349121</wayPoint>
+        <wayPoint id="127">50.879779130935276,4.711031913757324</wayPoint>
+        <wayPoint id="128">50.87401128322168,4.692878723144531</wayPoint>
+        <wayPoint id="129">50.874038363986855,4.693565368652344</wayPoint>
+        <wayPoint id="130">50.87418730791406,4.693565368652344</wayPoint>
+        <wayPoint id="131">50.874227928902535,4.6942949295043945</wayPoint>
+        <wayPoint id="132">50.87537884219595,4.693179130554199</wayPoint>
+        <wayPoint id="133">50.87665158380176,4.693500995635986</wayPoint>
+        <wayPoint id="134">50.87669220264234,4.69315767288208</wayPoint>
+        <wayPoint id="135">50.877491032645615,4.6933722496032715</wayPoint>
+        <wayPoint id="136">50.87222391792869,4.703822135925293</wayPoint>
+    </wayPoints>
+    <connections>
+        <connection dst="70" id="183" src="71"/>
+        <connection dst="76" id="184" src="71"/>
+        <connection dst="75" id="185" src="76"/>
+        <connection dst="74" id="186" src="75"/>
+        <connection dst="77" id="187" src="74"/>
+        <connection dst="70" id="188" src="77"/>
+        <connection dst="72" id="189" src="69"/>
+        <connection dst="73" id="190" src="72"/>
+        <connection dst="73" id="191" src="77"/>
+        <connection dst="80" id="192" src="73"/>
+        <connection dst="78" id="193" src="77"/>
+        <connection dst="79" id="194" src="78"/>
+        <connection dst="71" id="195" src="70"/>
+        <connection dst="71" id="196" src="76"/>
+        <connection dst="76" id="197" src="75"/>
+        <connection dst="75" id="198" src="74"/>
+        <connection dst="74" id="199" src="77"/>
+        <connection dst="77" id="200" src="70"/>
+        <connection dst="69" id="201" src="72"/>
+        <connection dst="72" id="202" src="73"/>
+        <connection dst="77" id="203" src="73"/>
+        <connection dst="73" id="204" src="80"/>
+        <connection dst="77" id="205" src="78"/>
+        <connection dst="78" id="206" src="79"/>
+        <connection dst="128" id="207" src="84"/>
+        <connection dst="84" id="208" src="128"/>
+        <connection dst="129" id="209" src="128"/>
+        <connection dst="128" id="210" src="129"/>
+        <connection dst="130" id="211" src="129"/>
+        <connection dst="129" id="212" src="130"/>
+        <connection dst="131" id="213" src="130"/>
+        <connection dst="130" id="214" src="131"/>
+        <connection dst="76" id="215" src="131"/>
+        <connection dst="131" id="216" src="76"/>
+        <connection dst="128" id="217" src="132"/>
+        <connection dst="132" id="218" src="128"/>
+        <connection dst="75" id="219" src="132"/>
+        <connection dst="132" id="220" src="75"/>
+        <connection dst="88" id="221" src="84"/>
+        <connection dst="84" id="222" src="88"/>
+        <connection dst="83" id="223" src="85"/>
+        <connection dst="85" id="224" src="83"/>
+        <connection dst="88" id="225" src="83"/>
+        <connection dst="83" id="226" src="88"/>
+        <connection dst="132" id="227" src="83"/>
+        <connection dst="83" id="228" src="132"/>
+        <connection dst="83" id="229" src="87"/>
+        <connection dst="87" id="230" src="83"/>
+        <connection dst="85" id="231" src="86"/>
+        <connection dst="86" id="232" src="85"/>
+        <connection dst="82" id="233" src="87"/>
+        <connection dst="87" id="234" src="82"/>
+        <connection dst="135" id="235" src="82"/>
+        <connection dst="82" id="236" src="135"/>
+        <connection dst="134" id="237" src="135"/>
+        <connection dst="135" id="238" src="134"/>
+        <connection dst="134" id="239" src="133"/>
+        <connection dst="133" id="240" src="134"/>
+        <connection dst="132" id="241" src="133"/>
+        <connection dst="133" id="242" src="132"/>
+        <connection dst="81" id="243" src="135"/>
+        <connection dst="135" id="244" src="81"/>
+        <connection dst="90" id="245" src="91"/>
+        <connection dst="91" id="246" src="90"/>
+        <connection dst="89" id="247" src="90"/>
+        <connection dst="90" id="248" src="89"/>
+        <connection dst="82" id="249" src="89"/>
+        <connection dst="89" id="250" src="82"/>
+        <connection dst="92" id="251" src="90"/>
+        <connection dst="90" id="252" src="92"/>
+        <connection dst="93" id="253" src="92"/>
+        <connection dst="92" id="254" src="93"/>
+        <connection dst="94" id="255" src="93"/>
+        <connection dst="93" id="256" src="94"/>
+        <connection dst="89" id="257" src="94"/>
+        <connection dst="94" id="258" src="89"/>
+        <connection dst="95" id="259" src="94"/>
+        <connection dst="94" id="260" src="95"/>
+        <connection dst="96" id="261" src="95"/>
+        <connection dst="95" id="262" src="96"/>
+        <connection dst="81" id="263" src="97"/>
+        <connection dst="97" id="264" src="81"/>
+        <connection dst="96" id="265" src="97"/>
+        <connection dst="97" id="266" src="96"/>
+        <connection dst="78" id="267" src="81"/>
+        <connection dst="81" id="268" src="78"/>
+        <connection dst="113" id="269" src="80"/>
+        <connection dst="80" id="270" src="113"/>
+        <connection dst="113" id="271" src="79"/>
+        <connection dst="79" id="272" src="113"/>
+        <connection dst="114" id="273" src="113"/>
+        <connection dst="113" id="274" src="114"/>
+        <connection dst="112" id="275" src="114"/>
+        <connection dst="114" id="276" src="112"/>
+        <connection dst="80" id="277" src="112"/>
+        <connection dst="112" id="278" src="80"/>
+        <connection dst="112" id="279" src="116"/>
+        <connection dst="116" id="280" src="112"/>
+        <connection dst="116" id="281" src="115"/>
+        <connection dst="115" id="282" src="116"/>
+        <connection dst="114" id="283" src="115"/>
+        <connection dst="115" id="284" src="114"/>
+        <connection dst="117" id="285" src="115"/>
+        <connection dst="115" id="286" src="117"/>
+        <connection dst="118" id="287" src="117"/>
+        <connection dst="117" id="288" src="118"/>
+        <connection dst="119" id="289" src="118"/>
+        <connection dst="118" id="290" src="119"/>
+        <connection dst="118" id="291" src="116"/>
+        <connection dst="116" id="292" src="118"/>
+        <connection dst="124" id="293" src="118"/>
+        <connection dst="118" id="294" src="124"/>
+        <connection dst="125" id="295" src="124"/>
+        <connection dst="124" id="296" src="125"/>
+        <connection dst="111" id="297" src="127"/>
+        <connection dst="127" id="298" src="111"/>
+        <connection dst="109" id="299" src="111"/>
+        <connection dst="111" id="300" src="109"/>
+        <connection dst="122" id="301" src="124"/>
+        <connection dst="124" id="302" src="122"/>
+        <connection dst="123" id="303" src="122"/>
+        <connection dst="122" id="304" src="123"/>
+        <connection dst="126" id="305" src="123"/>
+        <connection dst="123" id="306" src="126"/>
+        <connection dst="110" id="307" src="126"/>
+        <connection dst="126" id="308" src="110"/>
+        <connection dst="125" id="309" src="126"/>
+        <connection dst="126" id="310" src="125"/>
+        <connection dst="127" id="311" src="110"/>
+        <connection dst="110" id="312" src="127"/>
+        <connection dst="109" id="313" src="110"/>
+        <connection dst="110" id="314" src="109"/>
+        <connection dst="120" id="315" src="119"/>
+        <connection dst="119" id="316" src="120"/>
+        <connection dst="121" id="317" src="120"/>
+        <connection dst="120" id="318" src="121"/>
+        <connection dst="122" id="319" src="121"/>
+        <connection dst="121" id="320" src="122"/>
+        <connection dst="105" id="321" src="121"/>
+        <connection dst="121" id="322" src="105"/>
+        <connection dst="110" id="323" src="105"/>
+        <connection dst="105" id="324" src="110"/>
+        <connection dst="106" id="325" src="105"/>
+        <connection dst="105" id="326" src="106"/>
+        <connection dst="109" id="327" src="106"/>
+        <connection dst="106" id="328" src="109"/>
+        <connection dst="104" id="329" src="105"/>
+        <connection dst="105" id="330" src="104"/>
+        <connection dst="102" id="331" src="72"/>
+        <connection dst="72" id="332" src="102"/>
+        <connection dst="103" id="333" src="102"/>
+        <connection dst="102" id="334" src="103"/>
+        <connection dst="104" id="335" src="103"/>
+        <connection dst="103" id="336" src="104"/>
+        <connection dst="107" id="337" src="104"/>
+        <connection dst="104" id="338" src="107"/>
+        <connection dst="106" id="339" src="107"/>
+        <connection dst="107" id="340" src="106"/>
+        <connection dst="100" id="341" src="101"/>
+        <connection dst="101" id="342" src="100"/>
+        <connection dst="99" id="343" src="100"/>
+        <connection dst="100" id="344" src="99"/>
+        <connection dst="98" id="345" src="101"/>
+        <connection dst="101" id="346" src="98"/>
+        <connection dst="108" id="347" src="107"/>
+        <connection dst="107" id="348" src="108"/>
+        <connection dst="98" id="349" src="108"/>
+        <connection dst="108" id="350" src="98"/>
+        <connection dst="136" id="351" src="99"/>
+        <connection dst="99" id="352" src="136"/>
+        <connection dst="98" id="353" src="136"/>
+        <connection dst="136" id="354" src="98"/>
+        <connection dst="117" id="355" src="95"/>
+        <connection dst="95" id="356" src="117"/>
+        <connection dst="86" id="357" src="91"/>
+        <connection dst="91" id="358" src="86"/>
+        <connection dst="87" id="359" src="86"/>
+        <connection dst="86" id="360" src="87"/>
+        <connection dst="99" id="361" src="69"/>
+        <connection dst="69" id="362" src="99"/>
+        <connection dst="127" id="363" src="125"/>
+        <connection dst="125" id="364" src="127"/>
+    </connections>
+</configuration>

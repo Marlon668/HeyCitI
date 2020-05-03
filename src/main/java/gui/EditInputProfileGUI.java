@@ -29,12 +29,6 @@ public class EditInputProfileGUI {
     private JLabel QOSLabel;
     private JSpinner durationSpinner;
     private JComboBox timeUnitComboBox;
-    private JSpinner bufferProbSpinner;
-    private JSpinner alphaProbSpinner;
-    private JSpinner pathProbSpinner;
-    private JSpinner synchronisationSpinner;
-    private JSpinner runs;
-    private JSpinner calculateFirstSpinner;
     private InputProfile inputProfile;
     private Environment environment;
 
@@ -55,12 +49,6 @@ public class EditInputProfileGUI {
 
         updateMoteButton.addActionListener(e -> {
             inputProfile.putProbabilityForMote(moteNumberComboBox.getSelectedIndex(), (Double) moteProbSpinner.getValue());
-            inputProfile.setBetterpath((Double) pathProbSpinner.getValue());
-            inputProfile.setAlphavalue((Double) alphaProbSpinner.getValue());
-            inputProfile.setBufferSize((Integer) bufferProbSpinner.getValue());
-            inputProfile.setSynchronisation((Integer) calculateFirstSpinner.getValue());
-            inputProfile.setAmountRuns((Integer) runs.getValue());
-            inputProfile.setSetupFirst((Integer) calculateFirstSpinner.getValue());
             refresh();
         });
 
@@ -73,8 +61,6 @@ public class EditInputProfileGUI {
                 refresh();
             }
         });
-
-
     }
 
     private void refresh() {
@@ -106,12 +92,7 @@ public class EditInputProfileGUI {
             moteNumberComboBox.removeAllItems();
         }
         moteProbSpinner.setModel(new SpinnerNumberModel(inputProfile.getProbabilityForMote(moteNumberComboBox.getSelectedIndex()), 0, 1, 0.01));
-        alphaProbSpinner.setModel(new SpinnerNumberModel(inputProfile.getAlphavalue(), 0, 1, 0.01));
-        pathProbSpinner.setModel(new SpinnerNumberModel(inputProfile.getBetterpath(), 0, 1, 0.01));
-        bufferProbSpinner.setModel(new SpinnerNumberModel(inputProfile.getBuffersize(), 0, Integer.MAX_VALUE, 1));
-        synchronisationSpinner.setModel(new SpinnerNumberModel(inputProfile.getSynchronisation(),0,1,1));
-        calculateFirstSpinner.setModel(new SpinnerNumberModel(inputProfile.getSetupFirst(),0,1,1));
-        runs.setModel(new SpinnerNumberModel(inputProfile.getAmountRuns(),1,Integer.MAX_VALUE,1));
+        durationSpinner.setModel(new SpinnerNumberModel(inputProfile.getSimulationDuration(), 0, Long.MAX_VALUE, 1));
         timeUnitComboBox.setSelectedItem(inputProfile.getTimeUnit());
     }
 

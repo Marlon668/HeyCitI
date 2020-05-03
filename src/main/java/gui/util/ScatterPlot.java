@@ -8,9 +8,9 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import com.orsonpdf.PDFDocument;
-import com.orsonpdf.PDFGraphics2D;
-import com.orsonpdf.Page;
+import gui.util.orsonpdf.PDFDocument;
+import gui.util.orsonpdf.PDFGraphics2D;
+import gui.util.orsonpdf.Page;
 import gui.MainGUI;
 import iot.Result;
 import iot.networkentity.Mote;

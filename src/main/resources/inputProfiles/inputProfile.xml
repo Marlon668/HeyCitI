@@ -46,14 +46,6 @@
                 <activityProbability>1.0</activityProbability>
             </mote>
         </moteProbabilaties>
-        <adaptationParameters>
-            <bufferSize>2</bufferSize>
-            <alphaValue> 0.95 </alphaValue>
-            <evaluationValue> 0.95 </evaluationValue>
-            <synchronisedIssue> 0 </synchronisedIssue>
-            <amountRuns> 3 </amountRuns>
-            <setupFirst> 1 </setupFirst>
-        </adaptationParameters>
     </inputProfile>
     <inputProfile>
         <name>ReliableEfficientOpen</name>
@@ -81,13 +73,5 @@
                 <activityProbability>1.0</activityProbability>
             </mote>
         </moteProbabilaties>
-        <adaptationParameters>
-            <bufferSize>2</bufferSize>
-            <alphaValue> 0.95 </alphaValue>
-            <evaluationValue> 0.95 </evaluationValue>
-            <synchronisedIssue> 0 </synchronisedIssue>
-            <amountRuns> 3 </amountRuns>
-            <setupFirst> 1 </setupFirst>
-        </adaptationParameters>
     </inputProfile>
 </inputProfiles>
