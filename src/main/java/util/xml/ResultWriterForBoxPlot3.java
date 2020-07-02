@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class ResultWriterForBoxPlot3 {
 
-    public static void saveResultsToFile(SimulationRunner simulationRunner, HashMap<Mote, HashMap<Integer, HashMap<Integer, List<Double>>>> differenceConnections, File file) {
+    public static void saveResultsToFile(HashMap<Mote, HashMap<Integer, HashMap<Integer, List<Double>>>> differenceConnections, File file) {
         try {
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             // root element
@@ -44,6 +44,13 @@ public class ResultWriterForBoxPlot3 {
                 }
                 valuesForAirQuality.appendChild(moteElement);
             }
+            rootElement.appendChild(valuesForAirQuality);
+            // write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(file);
+            transformer.transform(source, result);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

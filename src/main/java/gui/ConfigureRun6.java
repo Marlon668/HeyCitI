@@ -31,10 +31,8 @@ public class ConfigureRun6 {
     private JPanel mainPanel;
     private JButton classGenerateButton;
     private JButton openButton;
-    private JSpinner pathProbSpinner;
     private JSpinner amountRunsSpinner;
     private JSpinner amountNoiseSpinner;
-    private JSpinner analysingMethod;
     private JSpinner bufferProbWidthSpinner;
     private JSpinner bufferProbHeightSpinner;
     private JButton SaveButton;
@@ -83,8 +81,6 @@ public class ConfigureRun6 {
                     int bufferSizeHeight = (Integer) bufferProbHeightSpinner.getValue();
                     int bufferSizeWidth = (Integer) bufferProbWidthSpinner.getValue();
                     data.add(new Pair<>(bufferSizeHeight, bufferSizeWidth));
-                    simulationRunner.getParameters().setAnalysingMethod((Integer) analysingMethod.getValue());
-                    simulationRunner.getParameters().setBetterpath((Double) pathProbSpinner.getValue());
                     simulationRunner.getEnvironmentAPI().getSensors().forEach(sensor -> {
                         sensor.setNoiseRatio((Integer) amountNoiseSpinner.getValue());
                     });
@@ -152,8 +148,6 @@ public class ConfigureRun6 {
     private void refresh() {
         bufferProbHeightSpinner.setModel(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
         bufferProbWidthSpinner.setModel(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
-        pathProbSpinner.setModel(new SpinnerNumberModel(1, 0.001, 1, 0.001));
-        analysingMethod.setModel(new SpinnerNumberModel(0, 0, 2, 1));
         amountRunsSpinner.setModel(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
         amountNoiseSpinner.setModel(new SpinnerNumberModel(1, 1, 255, 1));
     }
@@ -200,8 +194,6 @@ public class ConfigureRun6 {
         final JLabel label3 = new JLabel();
         label3.setText("Better path");
         panel1.add(label3, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(119, 28), null, 0, false));
-        analysingMethod = new JSpinner();
-        panel1.add(analysingMethod, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label4 = new JLabel();
         label4.setText("Analysing Method");
         panel1.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -221,8 +213,6 @@ public class ConfigureRun6 {
         SaveButton = new JButton();
         SaveButton.setText("Save");
         panel1.add(SaveButton, new GridConstraints(1, 5, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        pathProbSpinner = new JSpinner();
-        panel1.add(pathProbSpinner, new GridConstraints(0, 3, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         Show = new JButton();
         Show.setText("Show");
         panel1.add(Show, new GridConstraints(3, 5, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

@@ -366,6 +366,7 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
                         bestPath.getRight().remove(0);
                     } else {
                         int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                        System.out.println(mote.getEUI() + " : " + amountAdaptations);
                         getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
                         bestPath.getRight().remove(0);
                         changedPath = Stream.concat(mote.getPath().getWayPoints().stream(), bestPath.getRight().stream()).collect(Collectors.toList());
@@ -374,8 +375,11 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
                 }
                 else{
                     int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                    System.out.println(mote.getEUI() + " : " + amountAdaptations);
                     getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
                     bestPath.getRight().remove(0);
+                    changedPath = Stream.concat(mote.getPath().getWayPoints().stream(), bestPath.getRight().stream()).collect(Collectors.toList());
+                    send = true;
                 }
                 this.routes.put(mote.getEUI(), bestPath);
             }
@@ -401,9 +405,8 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         } else {
             if (routes.get(mote.getEUI()) == null) {
                 int amountAdaptations = getAmountAdaptations().get(mote.getEUI()) + 1;
+                System.out.println(mote.getEUI() + " : " + amountAdaptations);
                 getAmountAdaptations().put(mote.getEUI(), amountAdaptations);
-                bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
-                this.routes.put(mote.getEUI(), bestPath);
                 bestPath = this.pathFinder.retrievePath(graph,currentPosition, mote.getDestination());
                 bestPath.getRight().remove(0);
                 this.routes.put(mote.getEUI(), bestPath);
@@ -440,19 +443,6 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         else{
             return null;
         }
-    }
-
-    /**
-     * Determines if all motes are finished
-     * @param positionsMote hash map that contains for every mote the current position of that mote
-     * @return true if current position of mote is equal to its destination, false otherwise
-     */
-    private boolean notAllMotesFinished(HashMap<UserMote,GeoPosition> positionsMote){
-        for (UserMote mote : positionsMote.keySet()) {
-            if (!(positionsMote.get(mote).equals(mote.getDestination())))
-                return true;
-        }
-        return false;
     }
 
     /**
@@ -576,11 +566,12 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         long endTime = System.nanoTime();
         // time we needed to determine next part of the route
         long elapsedSeconds = endTime - startTime;
-        elapsedSeconds = elapsedSeconds + averageTimeForDecisionPerMote.get(deviceEUI).getRight();
         // update eventually the maximum time
         if (maxTime.get(deviceEUI)<elapsedSeconds){
             maxTime.put(deviceEUI,elapsedSeconds);
         }
+        elapsedSeconds = elapsedSeconds + averageTimeForDecisionPerMote.get(deviceEUI).getRight();
+
         // update amount of determinations
         int step = averageTimeForDecisionPerMote.get(deviceEUI).getLeft() + 1;
         // save amount of determinations together with total cost in time of all determinations till now of the mote
@@ -718,7 +709,7 @@ public class RoutingApplication2 extends RoutingApplication implements Cloneable
         this.routes = new HashMap<>();
         this.lastPositions = new HashMap<>();
         this.bufferKBestPaths = new HashMap<>();
-        if(delete == 2) {
+        if(delete != 2) {
             amountAdaptations.keySet().stream().forEach(moteEui -> amountAdaptations.put(moteEui, 0));
             long time = 0;
             averageTimeForDecisionPerMote.keySet().stream().forEach(moteEUI -> averageTimeForDecisionPerMote.put(moteEUI, new Pair(0, time)));

@@ -138,7 +138,7 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
                 tileFactory.setLocalCache(new FileBasedLocalCache(cache, false));
             }
 
-            JFrame frame = new JFrame("Dynamic DingNet simulator");
+            JFrame frame = new JFrame("Dynamic HeyCitI simulator");
             MainGUI gui = new MainGUI(simulationRunner);
             frame.setContentPane(gui.mainPanel);
 
@@ -524,7 +524,6 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
         if (Objects.requireNonNull(environmentChoice.getSelectedItem()).toString().equals("Pollution sources view")) {
             mapViewer.setOverlayPainter(new CompoundPainterBuilder()
                 .withEnvironmentAPI(environment, simulationRunner.getEnvironmentAPI())
-                .withSensors(environment, simulationRunner.getEnvironmentAPI())
                 .withSources(environment, simulationRunner.getEnvironmentAPI())
                 .withMotes(environment)
                 .withRoutingPath(environment, simulationRunner.getRoutingApplication())
@@ -903,7 +902,6 @@ public class MainGUI extends JFrame implements SimulationUpdateListener, Refresh
 
 
                 frame.setTitle("Edit parameters");
-                System.out.println(simulationRunner.getParameters() == null);
 
                 editParameters editParameters =
                     new editParameters(simulationRunner.getParameters(), simulationRunner);

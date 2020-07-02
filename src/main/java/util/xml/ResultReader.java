@@ -28,10 +28,8 @@ public class ResultReader {
             for (int i = 0; i < resultList.getLength(); i++) {
                 Element moteElement = (Element) resultList.item(i);
                 long moteEUI = Long.parseLong(moteElement.getFirstChild().getNodeValue());
-                System.out.println("Mote : " + moteEUI);
                 for (Mote mote : simulationRunner.getEnvironment().getMotes()) {
                     if (mote.getEUI() == moteEUI) {
-                        System.out.println("Mote : " + moteEUI);
                         var width = moteElement.getElementsByTagName("BufferSizeWidth");
                         HashMap<Integer, HashMap<Integer, Result>> results1 = new HashMap<>();
                         for (int j = 0; j < width.getLength(); j++) {

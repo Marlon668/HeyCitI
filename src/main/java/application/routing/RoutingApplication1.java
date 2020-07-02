@@ -744,11 +744,11 @@ public class RoutingApplication1 extends RoutingApplication implements Cloneable
         long endTime = System.nanoTime();
         // time we needed to determine next part of the route
         long elapsedSeconds = endTime - startTime;
-        elapsedSeconds = elapsedSeconds + averageTimeForDecisionPerMote.get(deviceEUI).getRight();
         // update eventually the maximum time
         if (maxTime.get(deviceEUI)<elapsedSeconds){
             maxTime.put(deviceEUI,elapsedSeconds);
         }
+        elapsedSeconds = elapsedSeconds + averageTimeForDecisionPerMote.get(deviceEUI).getRight();
         // update amount of determinations
         int step = averageTimeForDecisionPerMote.get(deviceEUI).getLeft() + 1;
         // save amount of determinations together with total cost in time of all determinations till now of the mote

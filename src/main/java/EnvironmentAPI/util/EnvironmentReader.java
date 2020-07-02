@@ -6,6 +6,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import parsii.tokenizer.ParseException;
 import util.Pair;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -69,7 +70,7 @@ public class EnvironmentReader {
                 runner.getEnvironmentAPI().addSensor(SensorFactory.createSensor(runner.getEnvironmentAPI().getPoll(), runner.getEnvironment(), position, maxValue, noiseRatio));
             }
 
-        } catch (SAXException | ParserConfigurationException | IOException e) {
+        } catch (SAXException | ParserConfigurationException | IOException | ParseException e) {
             e.printStackTrace();
         }
     }

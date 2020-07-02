@@ -31,6 +31,11 @@
             <TimeUnit>SECONDS</TimeUnit>
             <Function>2000*gauss(1800,30)</Function>
         </FunctionSource>
+        <FunctionSource>
+            <Position>50.88002282709126, 4.696741104125977</Position>
+            <TimeUnit>SECONDS</TimeUnit>
+            <Function>3000*gauss(750,150)</Function>
+        </FunctionSource>
     </Sources>
     <Sensors>
         <Sensor>
@@ -74,7 +79,7 @@
             <NoiseRatio>0</NoiseRatio>
         </Sensor>
         <Sensor>
-            <Position>50.88072683104923, 4.693565368652344</Position>
+            <Position>50.879860363128884, 4.696998596191406</Position>
             <MaxValue>255.0</MaxValue>
             <NoiseRatio>0</NoiseRatio>
         </Sensor>

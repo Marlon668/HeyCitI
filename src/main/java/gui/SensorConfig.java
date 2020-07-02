@@ -269,7 +269,6 @@ public class SensorConfig {
             String maxValue = MaxValueText.getText().replace(",", ".");
             toChange.setMaxValue(Double.parseDouble(maxValue));
             toChange.setNoiseRatio(Integer.parseInt(NoiseRatioText.getText()));
-            System.out.println(toChange.getMaxValue());
         }
     }
 

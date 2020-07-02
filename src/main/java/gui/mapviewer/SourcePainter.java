@@ -39,9 +39,9 @@ public class SourcePainter extends AbstractPainter<JXMapViewer> {
             int x = (int) (point.getX()-5);
             int y = (int) (point.getY()-5);
 
-            //g.fillRect(x,y,10,10);
-            g.setColor(Color.BLUE);
-            g.drawRect(x-1,y-1,11,11);
+            g.fillRect(x,y,10,10);
+            g.setColor(Color.black);
+            g.drawOval(x-1,y-1,11,11);
 
         }
 

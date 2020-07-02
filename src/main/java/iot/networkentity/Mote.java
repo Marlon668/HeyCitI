@@ -243,12 +243,7 @@ public class Mote extends NetworkEntity {
 
 
     public void setPath(List<GeoPosition> positions) {
-        //if(pathNotContainsDoubles(positions)) {
             this.path.setPath(positions);
-        //}
-        //else{
-        //    System.out.println(this.getPath().getWayPoints().size());
-        //}
     }
 
 

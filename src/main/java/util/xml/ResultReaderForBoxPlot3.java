@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ResultReaderForBoxPlot3 {
-    public static HashMap<Mote, HashMap<Integer, HashMap<Integer, List<Double>>>> readResultsAirQuality(File file, SimulationRunner simulationRunner) throws ParserConfigurationException {
+    public static HashMap<Mote, HashMap<Integer, HashMap<Integer, List<Double>>>> readResultsDifference(File file, SimulationRunner simulationRunner) throws ParserConfigurationException {
         HashMap<Mote, HashMap<Integer, HashMap<Integer, List<Double>>>> results = new HashMap<>();
         try {
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
@@ -25,10 +25,8 @@ public class ResultReaderForBoxPlot3 {
             for (int i = 0; i < resultList.getLength(); i++) {
                 Element moteElement = (Element) resultList.item(i);
                 long moteEUI = Long.parseLong(moteElement.getFirstChild().getNodeValue());
-                System.out.println("Mote : " + moteEUI);
                 for (Mote mote : simulationRunner.getEnvironment().getMotes()) {
                     if (mote.getEUI() == moteEUI) {
-                        System.out.println("Mote : " + moteEUI);
                         var height = moteElement.getElementsByTagName("BufferSizeHeight");
                         HashMap<Integer, HashMap<Integer, List<Double>>> results1 = new HashMap<>();
                         for (int j = 0; j < height.getLength(); j++) {

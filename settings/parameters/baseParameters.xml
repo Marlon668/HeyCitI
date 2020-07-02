@@ -2,8 +2,8 @@
 <adaptationParameters>
     <adaptationParameters>
         <evaluationValue>1.0</evaluationValue>
-        <bufferSizeHeight>2</bufferSizeHeight>
-        <bufferSizeWidth>2</bufferSizeWidth>
+        <bufferSizeHeight>1</bufferSizeHeight>
+        <bufferSizeWidth>1</bufferSizeWidth>
         <synchronisedIssue>0</synchronisedIssue>
         <amountRuns>1</amountRuns>
         <setupFirst>0</setupFirst>

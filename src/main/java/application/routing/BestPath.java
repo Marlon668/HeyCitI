@@ -135,10 +135,10 @@ public class BestPath{
         // distance in meter
         double distance = MapHelper.distance(begin,end)*1000;
         int period = 0;
-        // time in seconds
+        // time in milliseconds
         long endTime = (long)(distance/velocity)*1000 + time;
         double airValue = pollutionEnvironment.getDataBetweenPointsFromTime(begin,end, time,endTime,velocity,0.1);
-        return new Pair<Double, Long>(airValue*distance/1000,endTime);
+        return new Pair<Double, Long>(airValue*airValue*airValue*distance/100,endTime);
     }
 
 

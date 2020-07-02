@@ -22,6 +22,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -182,8 +183,15 @@ public class LinePlot extends JFrame {
 
     private static JFreeChart createChart(XYDataset var0, ArrayList<Mote> motes, int index,int data,boolean normalise) {
         if (data == 0) {
-            JFreeChart var1 = ChartFactory.createXYLineChart("Cyclist : " + motes.get(index).getEUI(), "Horizon", "Air-quality", var0, PlotOrientation.VERTICAL, true, true, false);
+            String title = "Air quality cyclist "  + motes.get(index).getEUI() + " for different parameters";
+            JFreeChart var1 = ChartFactory.createXYLineChart(title, "Horizon", "Air quality", var0, PlotOrientation.VERTICAL, true, true, false);
             XYPlot var2 = (XYPlot) var1.getPlot();
+            Font font3 = new Font("Arial", Font.PLAIN, 24);
+            var2.getDomainAxis().setLabelFont(font3);
+            font3 = new Font("Arial", Font.PLAIN, 28);
+            var1.getTitle().setFont(font3);
+            font3 = new Font("Arial", Font.PLAIN, 24);
+            var2.getRangeAxis().setLabelFont(font3);
             var2.setDomainPannable(true);
             var2.setRangePannable(true);
             var2.setDomainZeroBaselineVisible(true);
@@ -197,14 +205,23 @@ public class LinePlot extends JFrame {
             XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
             var3.setBaseShapesVisible(true);
             var3.setBaseShapesFilled(true);
-
+            LegendTitle legend = var1.getLegend();
+            Font labelFont = new Font("Arial", Font.PLAIN, 18);
+            legend.setItemFont(labelFont);
             var3.setDrawOutlines(true);
             NumberAxis var4 = (NumberAxis) var2.getRangeAxis();
             var4.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
             return var1;
         } else {
-            JFreeChart var1 = ChartFactory.createXYLineChart("Mote : " + motes.get(index).getEUI(), "Buffersize (height)", "Number of Adaptations", var0, PlotOrientation.VERTICAL, true, true, false);
+            String title = "Number of adaptations Cyclist " + motes.get(index).getEUI() + " for different parameters";
+            JFreeChart var1 = ChartFactory.createXYLineChart(title, "Horizon", "Number of Adaptations", var0, PlotOrientation.VERTICAL, true, true, false);
             XYPlot var2 = (XYPlot) var1.getPlot();
+            Font font3 = new Font("Arial", Font.PLAIN, 24);
+            var2.getDomainAxis().setLabelFont(font3);
+            font3 = new Font("Arial", Font.PLAIN, 28);
+            var1.getTitle().setFont(font3);
+            font3 = new Font("Arial", Font.PLAIN, 24);
+            var2.getRangeAxis().setLabelFont(font3);
             var2.setDomainPannable(true);
             var2.setRangePannable(true);
             var2.setDomainZeroBaselineVisible(true);
@@ -212,7 +229,9 @@ public class LinePlot extends JFrame {
             XYLineAndShapeRenderer var3 = (XYLineAndShapeRenderer) var2.getRenderer();
             var3.setBaseShapesVisible(true);
             var3.setBaseShapesFilled(true);
-
+            LegendTitle legend = var1.getLegend();
+            Font labelFont = new Font("Arial", Font.PLAIN, 18);
+            legend.setItemFont(labelFont);
             var3.setDrawOutlines(true);
             NumberAxis var4 = (NumberAxis) var2.getRangeAxis();
             var4.setStandardTickUnits(NumberAxis.createIntegerTickUnits());

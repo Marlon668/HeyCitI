@@ -206,7 +206,7 @@ public class UserMote extends Mote {
     }
 
     /**
-     * Function to change the path of the mote if the simualtion option is without network option 2
+     * Function to change the path of the mote if the simulation option is without network option 2
      */
     public void changePath(){
         GeoPosition setPosition = null;
@@ -214,7 +214,6 @@ public class UserMote extends Mote {
             if (MapHelper.distance(getEnvironment().getMapHelper().toGeoPosition(getPosInt()), positionToChange) < 0.002) {
                 setPath(changesPath.get(positionToChange).get(0));
                 setPosition = positionToChange;
-                this.hasChanged = true;
                 break;
             }
         }

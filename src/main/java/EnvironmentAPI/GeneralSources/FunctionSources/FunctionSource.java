@@ -21,7 +21,7 @@ public class FunctionSource extends Source {
     private Variable t;
     private String functionString;
 
-    public FunctionSource(GeoPosition position, String function, TimeUnit unit) {
+    public FunctionSource(GeoPosition position, String function, TimeUnit unit) throws ParseException {
         super(position, unit);
         setFunction(function);
     }
@@ -53,16 +53,11 @@ public class FunctionSource extends Source {
         return functionString;
     }
 
-    public void setFunction(String function) {
+    public void setFunction(String function) throws ParseException {
         this.functionString = function;
         function = function.replaceAll("gauss[(](\\S+),(\\S+)[)]", "(1/($2*sqrt(2*pi)))*exp(-0.5*((t-$1)/$2)^2)");
         Scope scope = new Scope();
         this.t = scope.getVariable("t");
-        try {
-            this.function = Parser.parse(function, scope);
-        }
-        catch (ParseException e){
-            System.out.println("There was an error: " + e.getMessage());
-        }
+        this.function = Parser.parse(function, scope);
     }
 }

@@ -4,7 +4,6 @@ import EnvironmentAPI.GeneralSources.Source;
 import EnvironmentAPI.util.EnvSettings;
 import EnvironmentAPI.util.PairComparator;
 import datagenerator.iaqsensor.TimeUnit;
-import org.apache.commons.lang3.SystemUtils;
 import org.jxmapviewer.viewer.GeoPosition;
 import util.Pair;
 
@@ -79,7 +78,6 @@ public class PolynomialSource extends Source {
      */
     private double evaluateLinearly(double timeinNano) {
         double timeToEvaluate = timeUnit.convertFromNano(timeinNano);
-        System.out.println("tIME LINEARLY : " + timeToEvaluate);
         if (pointsKnown.stream().anyMatch(p -> p.getLeft() == timeToEvaluate)) {
             return pointsKnown.stream().filter(p -> p.getLeft() == timeToEvaluate).findFirst().get().getRight();
         }

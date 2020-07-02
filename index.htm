@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+    <title>HeyCitI Exemplar</title>
+    <style type="text/css">
+        .function{
+            color:#48d1cc;
+        }
+        .signal{
+            color:#0000FF;
+        }
+        .condition{
+            color:#32cd32;
+        }
+        .state{
+            color:#c71585;
+        }
+        .invariant{
+            color:#C71585;
+        }
+        .property{
+            color:#A9A9A9;
+            font-family:Tahoma, Georgia, Serif;
+        }
+    </style>
+    <style type="text/css"></style>
+  </head>
+  <body style=" color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
+    <table style="width: 100%; height: 80px;" align="center">
+      <tbody>
+        <tr>
+          <td bordercolor="#FFFFFF" style="width: 100%; white-space: nowrap; height: 80px; text-align: center; background-color: rgb(0, 138, 173);">
+            <p align="center"><b style="font-family: Arial; color: rgb(255, 255, 255);"><font
+                  size="5"
+                  face="Garamond"><b
+                    style="font-family: Arial; color: rgb(255, 255, 255);"><font
+                      size="5"
+                      face="Garamond">HeyCitI:
+                      Healthy Cycling in a City using Self-Adaptive
+                      Internet-of-Things </font></b></font></b> </p>
+            <p align="center"> <span style="color: white;">--</span>&nbsp; <a
+                style="font-family: Arial; color: rgb(255, 255, 255);"
+                href="../../index.htm"
+                target="_blank">Home</a>&nbsp;
+              <span style="color: white;">--</span> &nbsp; <a style="font-family: Arial; color: rgb(255, 255, 255);"
+                href="index.htm">
+                <span style="color: white;"></span><span style="color: white;"></span><span
+                  style="color: white;"></span>
+                <br>
+              </a></p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <h2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Introduction</h2>
+    <table width="100%" align="center">
+      <tbody>
+        <tr>
+          <td class="content">
+            <ul>
+              Air pollution can seriously affect the health of people. Even
+              though air quality in Europe has improved over recent years,
+              according to the European Environment Agency air pollution is the
+              biggest environmental health risk in Europe, in particular in
+              cities. Smart city applications can help addressing the problem of
+              minimizing exposure to pollution. Such applications are typically
+              built using the Internet-of-Things (IoT). We introduce HeyCitI,
+              short for Healthy Cycling in a City using IoT, a smart city
+              solution that helps cyclists to determine a healthy path through a
+              city area and dynamically adapts the path on the way the
+              conditions change.&nbsp; To investigate, design, implement, and
+              test HeyCitI before actual deployment in the field, engineers can
+              make use of simulation. We developed a simulator relying on the
+              DingNet IoT network in Leuven. This webpage provides the resources
+              to experiment with the HeyCitI simulator.
+            </ul>
+            <ul>
+              <b>Download:</b><br>
+              <br>
+              <ul>
+                <li> Source code: <a href="./resources/HeyCitI.zip" download>HeyCitI Source code</a> </li>
+                <li> Executable: <a href="./resources/HeyCitI-1.1.0-jar-with-dependencies.jar" download>HeyCitI Executable</a> </li>
+                <li> User Guide: <a href="./resources/UserGuide.pdf" download>HeyCitI User Guide</a> </li>
+                <li> DingNet IoT Leuven: <a href="https://admin.kuleuven.be/icts/english/services/dingnet">DingNet
+                    IoT network Leuven</a> </li>
+              </ul>
+              <br>
+              <b>Use cases:</b><br>
+              <br>
+              <ul>
+                <li> Short HeyCitI movie with scenario of multiple cyclists: (To
+                  be added, eta: 5/05/20) </li>
+                <!--<a href="./resources/ShortMovie.mp4" download>Short movie</a>-->
+              </ul>
+            </ul>
+            <ul>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table width="100%" align="center">
+      <tbody>
+        <tr>
+          <td class="content">
+            <ul>
+              <h2>Description</h2>
+              <p> </p>
+              The HeyCitI simulator supports research and analysis of
+              self-adaptive pathfinding through a city,
+              aiming to reduce inhaled pollution. The following figure shows the
+              high level design:
+              <p align="center" > <img width="25%" title="Design overview of HeyCitI" alt="Design overview of HeyCitI" src="images/design-HeyCitI.png"></p>
+              The <i>Environment</i> comprises a <i>Map</i> with the <i>layout</i>
+              of the traffic paths, a set of Sensors and a set of
+              PollutionSources that follow a particular PollutionSpreading that
+              is modeled based on fluid dynamics. The environment also offers a
+              <i>PollutionTrackService</i> that allows users to <i>trackPollution</i>.
+              The navigation system offers a <i>PathFinder</i> that computes a
+              <i>traject</i> of a <i>Path</i> for a user to a given <i>destination</i>
+              using a <i>LocationService</i>. The feedback loop implements the
+              classic MAPE-K components. Throughout the trip, the <i>Monitor</i>
+              maintains all relevant information in the <i>Knowledge</i> about
+              paths using location tracking and the pollution tracking
+              service.&nbsp; When the cyclist approaches a waypoint, the <i>Analyzer</i>
+              determines the <i>K</i> paths to the destination for a given
+              horizon (i.e, a number of waypoints) using <i>PathAnalysis</i>
+              that relies on K* [6] (we use K=2 and horizon=2 in the scenario
+              below). The analyzer writes this information to the <i>buffer</i>
+              in the knowledge. The <i>Planner</i> then determines the best
+              path based on the <i>goals</i> as further explained in the
+              artifact paper. Finally, the <i>Executor</i> updates the path of
+              the navigation system.
+            </ul>
+            <ul>
+            </ul>
+            <ul>
+              <h2>Adaptation Challenges</h2>
+              <p> </p>
+              The main adaptation goal is to find paths with minimum pollution.
+              To that end, the navigation system is equipped with a MAPE-K that
+              realizes self-adaptation. The main uncertainty of the system is
+              the dynamic evolution of the pollution and the noise on the
+              sensors in the environment that measure the pollution. The
+              solution comprises the following steps: <br>
+              <ul>
+                <li> At each waypoint: determine the best K paths using K*for a
+                  given horizon (i.e., a number of waypoints)</li>
+                <li> Select the best path of the calculated paths </li>
+                <li> If the selected path is different from the current path
+                  used by the cyclist, adapt the current with the selected
+                  path.&nbsp;</li>
+              </ul>
+              An optional adaptation goal can be added to the system that takes
+              into account also the extra distance that the cyclist need to
+              travel when adapting the path.
+            </ul>
+            <ul>
+              <h2>Experimentation with Adaptation</h2>
+              <p> </p>
+              The simulator comes with a set of predefined scenarios that help
+              users to get familiar with the tool. The User Guide provides an
+              overview of the different steps. This guide also describes how you
+              can configure your own setting (add and configure
+              sensors/sources/cyclists and other setting). The user can then
+              define a custom feedback loop to realize self-adaptation.
+              <br>
+              During the run the environment spreads the pollution, the image below shows two snippets of
+              the same scenario at two different times to visualise the spreading.
+
+              <p align="center" > <img width="25%" title="Visualisation of the spreading of pollution"
+                                       alt="Visualisation of the spreading of pollution" src="images/PollutionSpread.png"></p>
+              <br>
+              Scenarios for up to 19 cyclist have been defined for the city Leuven as visible in the image below.
+              <p align="center" > <img width="25%" title="View of the environment with 19 cyclists"
+                                       alt="View of the environment with 19 cyclists" src="images/19_cyclist.png"></p>
+          </ul>
+              <ul>
+                  <h2>Some results</h2>
+                  <p> </p>
+                  The simulator comes with a set of predefined scenarios that help
+                  users to get familiar with the tool. The User Guide provides an
+                  overview of the different steps. This guide also describes how you
+                  can configure your own setting (add and configure
+                  sensors/sources/cyclists and other setting). The user can then
+                  define a custom feedback loop to realize self-adaptation.
+                  <br>
+                  During the run the environment spreads the pollution, the image below shows two snippets of
+                  the same scenario at two different times to visualise the spreading.
+
+                  <p align="center" > <img width="25%" title="Visualisation of the spreading of pollution"
+                                           alt="Visualisation of the spreading of pollution" src="images/PollutionSpread.png"></p>
+                  <br>
+                  Scenarios for up to 19 cyclist have been defined for the city Leuven as visible in the image below.
+                  <p align="center" > <img width="25%" title="View of the environment with 19 cyclists"
+                                           alt="View of the environment with 19 cyclists" src="images/19_cyclist.png"></p>
+              </ul>
+            <ul>
+              <h2>Download and Setup</h2>
+              <p> </p>
+              The HeyCitI simulator is implemented in Java. All the
+              experimentation material with instructions to setup HeyCitI and
+              use it for experimentation can be downloaded via links provided at
+              the top of this page.
+            </ul>
+            <ul>
+              <h2>Contact</h2>
+              <p> </p>
+              <ul>
+                <li><a href="mailto:danny.weyns@kuleuven.be">Danny Weyns</a></li>
+                <li><a href="mailto:marlon.saelens@student.kuleuven.be">Marlon
+                    Saelens</a></li>
+                <li><a href="mailto:yentl.kinoo@student.kuleuven.be">Yentl Kinoo</a></li>
+                <br>
+              </ul>
+            </ul>
+            <ul>
+              <h2>Bibliography</h2>
+              <p> </p>
+              [1] European Environment Agency: <a href="https://www.eea.europa.eu/">https://www.eea.europa.eu/</a><br>
+              [2] B. Reynders et al., "A lorawan module for ns-3: Implementation
+              and evaluation," 10th Workshop on Ns-3, 2018.<br>
+              [3] M. Provoost and D. Weyns, "DingNet: a self-adaptive
+              internet-of-things exemplar.", SEAMS, 2019.<br>
+              [4] LoRaWAN: <a href="https://www.thethingsnetwork.org/docs/lorawan/">https://www.thethingsnetwork.org/docs/lorawan/</a><br>
+              [5] J. Stam, "Real-time fluid dynamics for games.," Game
+              Developer, vol. 18, 2003.<br>
+              [6] H. Aljazzar et al., "K*: A heuristic search algorithm for
+              finding the k shortest paths," Artificial Intelligence, vol. 18,
+              2011.<br>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Default Statcounter code for DingNet
+https://people.cs.kuleuven.be/~danny.weyns/software/DingNet/index.htm-->
+    <script type="text/javascript">
+    var sc_project=11950333;
+    var sc_invisible=1;
+    var sc_security="a439b483";
+</script> <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js"
+async=""></script>
+    <noscript><div class="statcounter"><a title="Web Analytics" href="https://statcounter.com/"
+target="_blank"><img
+class="statcounter"
+src="https://c.statcounter.com/11950333/0/a439b483/1/"
+alt="Web Analytics"></a></div></noscript>
+    <!-- End of Statcounter Code -->
+    <table width="100%" align="center">
+      <tbody>
+        <tr>
+          <td class="content"> <br>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table style="width: 100%; height: 40px;" align="center">
+      <tbody>
+        <tr>
+          <td bordercolor="#FFFFFF" style="width: 100%; white-space: nowrap; height: 40px; text-align: center; background-color: rgb(0, 138, 173);">
+            <p align="center"><span style="color: white;">--</span>&nbsp; <a style="color: white;"
+                href="mailto:danny.weyns@kuleuven.be">Feedback</a>&nbsp;
+              <span style="color: white;">--</span> &nbsp;&nbsp; </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

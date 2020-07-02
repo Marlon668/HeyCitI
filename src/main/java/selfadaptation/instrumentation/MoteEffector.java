@@ -9,6 +9,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 import util.GraphStructure;
 import util.Path;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,7 +64,6 @@ public class MoteEffector {
             List<GeoPosition> positions = pathFinder.retrievePath(environment.getGraph(),environment.getMapHelper().toGeoPosition(mote.getPosInt()),((UserMote) mote).getDestination()).getRight();
             Path newPath = new Path(positions,environment.getGraph());
             mote.setPath(newPath);
-            System.out.println(newPath.getWayPoints());
         }
 
     }

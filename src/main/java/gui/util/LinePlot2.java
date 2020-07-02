@@ -140,7 +140,6 @@ public class LinePlot2 extends JFrame {
 
     }
 
-
     private static JFreeChart createChart(XYDataset var0, ArrayList<Mote> motes, int index,int bufferSizeHeight,int bufferSizeWidth) {
         String title = "Cyclist : " + motes.get(index).getEUI()  + " with buffer: K=" + bufferSizeWidth + " and horizon =" + bufferSizeHeight;
         JFreeChart var1 = ChartFactory.createXYLineChart(title, "Distance (meter)", "Air Quality", var0, PlotOrientation.VERTICAL, true, true, false);

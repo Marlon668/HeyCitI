@@ -55,7 +55,6 @@ public class RouteEvaluator extends Evaluator {
             List<Double>costList = new ArrayList<>();
             double cost = (sensorEnvironment.getDataFromSensors(environment.get().getMapHelper().toGeoPosition(mote.getOriginalPosInt())));
             cost = cost * cost * cost;
-            System.out.println(cost);
             costList.add(cost);
             lastMeasures.put(mote,costList);
             costList = new ArrayList<>();
@@ -68,7 +67,6 @@ public class RouteEvaluator extends Evaluator {
                 List<Double>costList = lastMeasures.get(mote);
                 double cost = (sensorEnvironment.getDataFromSensors(environment.get().getMapHelper().toGeoPosition(positionMote)));
                 cost = cost * cost * cost;
-                System.out.println(cost);
                 costList.add(cost);
                 int numberOfMeasures = costList.size();
                 double costConnection = costList.stream().mapToDouble(measure -> measure).sum();
@@ -83,7 +81,6 @@ public class RouteEvaluator extends Evaluator {
             } else {
                 double cost = sensorEnvironment.getDataFromSensors(environment.get().getMapHelper().toGeoPosition(positionMote));
                 cost = cost*cost*cost;
-                System.out.println(cost);
                 lastMeasures.get(mote).add(cost);
                 counter =0;
             }
@@ -133,9 +130,6 @@ public class RouteEvaluator extends Evaluator {
     }
 
     public Double getTotalCostPath(Mote mote, double distance){
-        //measures.get(mote).forEach(measure->{
-        //    System.out.println("Cost + " + measure);
-        //});
         double cost = measures.get(mote).stream().mapToDouble(measure -> measure).sum();
         return cost*distance/100;
     }

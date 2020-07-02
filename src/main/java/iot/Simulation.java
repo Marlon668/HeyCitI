@@ -57,8 +57,6 @@ public class Simulation {
     private Map<Mote, LocalTime> timeMap;
     private RouteEvaluator routeEvaluator;
     private RoutingApplication routingApplication;
-    private Map<Long,List<Double>> information;
-    private Integer time;
     private PollutionGrid pollutionGrid;
     private LocalTime startTime;
     private SensorEnvironment sensorEnvironment;
@@ -150,18 +148,6 @@ public class Simulation {
         routingApplication.setBufferSizeWidth(simulationRunner.getParameters().getBuffersizeWidth());
     }
 
-    @Basic
-    public Map<Long,List<Double>> getInformation(){
-        return this.information;
-    }
-
-    @Basic
-    public void setInformation() {
-        this.information = new HashMap<>();
-    }
-
-
-
     /**
      * Gets the InputProfile used in th simulation.
      * @return The InputProfile used in the simulation.
@@ -180,14 +166,14 @@ public class Simulation {
     }
 
     /**
-     * Gets the GenericFeedbackLoop used in th simulation.
+     * Gets the G
+    enericFeedbackLoop used in th simulation.
      * @return The GenericFeedbackLoop used in the simulation.
-     */
+        */
     @Basic
     public GenericFeedbackLoop getAdaptationAlgorithm() {
         return approach;
     }
-
     /**
      * Sets the GenericFeedbackLoop used in th simulation.
      * @param approach  The GenericFeedbackLoop to use in the simulation.
@@ -291,9 +277,8 @@ public class Simulation {
                         routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                     } else {
                         routingApplication.handleRouteRequestWithoutNetworkForRun((UserMote) mote, environment.get(), sensorEnvironment);
-                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         wayPointMap.put(mote, wayPointMap.get(mote) + 1);
-
+                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                     }
                 }
             });
@@ -322,8 +307,8 @@ public class Simulation {
                         routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                     } else {
                         routingApplication.handleRouteRequestWithoutNetworkForRun2((UserMote) mote, environment.get(), sensorEnvironment);
-                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         wayPointMap.put(mote, wayPointMap.get(mote) + 1);
+                        addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
 
                     }
                 }
@@ -485,7 +470,6 @@ public class Simulation {
 
         Pollenvironment.doStep(this.getEnvironment().getClock().getTime().toNanoOfDay(), this.getEnvironment());
         this.getEnvironment().getClock().tick(1);
-        time += 1;
     }
 
     /**
@@ -528,7 +512,6 @@ public class Simulation {
                         routeEvaluator.addCostConnectionOfMote(mote, wayPointMap.get(mote));
                     } else {
                         ((UserMote) mote).changePath();
-                        //addDistance(mote,mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
                         wayPointMap.put(mote, wayPointMap.get(mote) + 1);
                         if(!(wayPointMap.get(mote) == mote.getPath().getWayPoints().size())) {
                             addDistance(mote, mote.getPath().getWayPoints().get(wayPointMap.get(mote)));
@@ -590,15 +573,16 @@ public class Simulation {
                     if (mote instanceof UserMote) {
                         if (getApproach() != null && getApproach().getName() == "Air Quality") {
                             long averageTime = routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getRight() / routingApplication.getAverageTimeForDecisionPerMote().get(mote.getEUI()).getLeft();
-                            message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + "\n" +
-                                " , Amount adaptations: " + routingApplication.getAmountAdaptations().get(mote.getEUI()) + " , Distance : " + distanceMote.get(mote) +  "\n , AverageTimeDecision: " + averageTime +
-                                " Max Time" + routingApplication.getMaxTime().get(mote.getEUI()) + "\n";
+                            message += "EUI: " + String.format("%21s",mote.getEUI()) + " : Air Quality: " + String.format("%.2f",(double)Math.round(routeEvaluator.getTotalCostPath(mote.getEUI()) * 100.00) / 100.00) +
+                                " , Number of adaptations: " + String.format("%3s",routingApplication.getAmountAdaptations().get(mote.getEUI())) + " , Distance(in m): " + String.format("%.2f",(double)Math.round(distanceMote.get(mote) * 100.00) / 100.00) + " , AverageTimeDecision (in ms): " + String.format("%.2f",Math.round(averageTime/1000000.00 * 100.00) / 100.00) +
+                                " Max Time (in ms): " + String.format("%.2f",(double)Math.round(routingApplication.getMaxTime().get(mote.getEUI())/1000000.00 * 100.00) / 100.00 );
                             if (synhronisedError.get(mote)) {
-                                message += "Synchronisation issue has occurred for mote + " + mote.getEUI();
+                                message += " , Synchronisation issue has occurred" ;
                             }
+                            message += "\n";
 
                         } else {
-                            message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + "Distance : " + distanceMote.get(mote) + "\n";
+                            message += "EUI: " + String.format("%21s",mote.getEUI())  + " : Air Quality: " +  String.format("%.2f",(double)Math.round(routeEvaluator.getTotalCostPath(mote.getEUI()) * 100.00) / 100.00)  + " , Distance(in m): " + String.format("%.2f",(double)Math.round(distanceMote.get(mote) * 100.00) / 100.00) + "\n";
                         }
 
                     }
@@ -608,20 +592,7 @@ public class Simulation {
 
         }
 
-        if(!(getApproach() == null) && getApproach().getName()=="Get Information")
-        {
-            if(time/1000 >= 3000)
-            {
-                String message2 = "Finished \nPress on save to write the information about the evolution of the values for all connections on a xml-file";
-                JOptionPane.showMessageDialog(null, message2, "Information gathered", JOptionPane.INFORMATION_MESSAGE);
-                return true;
-            }
-        }
-        else {
-            return !this.continueSimulation.test(this.getEnvironment());
-        }
         return !this.continueSimulation.test(this.getEnvironment());
-
     }
 
     /**
@@ -672,7 +643,6 @@ public class Simulation {
         startTime = LocalTime.of(0,0,40);
         this.finished = false;
         this.buffer = new HashMap<>();
-        this.time = 0;
         sensorEnvironment.getPoll().clear();
 
 
@@ -790,11 +760,11 @@ public class Simulation {
                 if (mote instanceof UserMote) {
                     if (getApproach() != null && getApproach().getName() == "Air Quality") {
                         message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) +
-                            " , Amount adaptations: " + routingApplication.getAmountAdaptations().get(mote.getEUI())+ "Distance : " + distanceMote.get(mote) +
+                            " , Number of adaptations: " + routingApplication.getAmountAdaptations().get(mote.getEUI())+ " Distance : " + distanceMote.get(mote) +
                             "\n";
 
                     } else {
-                        message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + "Distance : " + distanceMote.get(mote) + "\n";
+                        message += "EUI: " + mote.getEUI() + "  :    " + routeEvaluator.getTotalCostPath(mote.getEUI()) + " Distance : " + distanceMote.get(mote) + "\n";
                     }
 
                 }

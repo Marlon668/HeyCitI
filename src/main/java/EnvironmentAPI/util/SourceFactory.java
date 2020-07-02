@@ -4,6 +4,7 @@ import EnvironmentAPI.GeneralSources.FunctionSources.FunctionSource;
 import EnvironmentAPI.GeneralSources.PolynomialSources.PolynomialSource;
 import datagenerator.iaqsensor.TimeUnit;
 import org.jxmapviewer.viewer.GeoPosition;
+import parsii.tokenizer.ParseException;
 import util.Pair;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class SourceFactory {
     }
 
     public static FunctionSource createFunctionSource(String function,
-                                                      GeoPosition position, TimeUnit unit){
+                                                      GeoPosition position, TimeUnit unit) throws ParseException {
         return new FunctionSource(position, function, unit);
     }
 

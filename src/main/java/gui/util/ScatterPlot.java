@@ -20,6 +20,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -37,8 +38,14 @@ public class ScatterPlot extends JFrame {
     }
 
     private static JFreeChart createChart(XYDataset var0) {
-        JFreeChart var1 = ChartFactory.createScatterPlot("Scatter Plot", "Distance", "Air-Quality", var0, PlotOrientation.VERTICAL, true, true, false);
-        XYPlot var2 = (XYPlot)var1.getPlot();
+        JFreeChart var1 = ChartFactory.createScatterPlot("Scatter Plot", "Distance (m)", "Air Quality", var0, PlotOrientation.VERTICAL, true, true, false);
+        XYPlot var2 = (XYPlot) var1.getPlot();
+        Font font3 = new Font("Arial", Font.PLAIN, 24);
+        var2.getDomainAxis().setLabelFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 28);
+        var1.getTitle().setFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 24);
+        var2.getRangeAxis().setLabelFont(font3);
         var2.setDomainCrosshairVisible(true);
         var2.setDomainCrosshairLockedOnData(true);
         var2.setRangeCrosshairVisible(true);
@@ -47,6 +54,9 @@ public class ScatterPlot extends JFrame {
         var2.setRangeZeroBaselineVisible(true);
         var2.setDomainPannable(true);
         var2.setRangePannable(true);
+        LegendTitle legend = var1.getLegend();
+        Font labelFont = new Font("Arial", Font.PLAIN, 18);
+        legend.setItemFont(labelFont);
         NumberAxis var3 = (NumberAxis)var2.getDomainAxis();
         var3.setAutoRangeIncludesZero(false);
         return var1;
@@ -60,7 +70,7 @@ public class ScatterPlot extends JFrame {
     public static JPanel createPanel(HashMap<Mote,HashMap<Integer, HashMap<Integer, Result>>> results,boolean normalise) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (Map.Entry<Mote,HashMap<Integer, HashMap<Integer, Result>>> moteEntry : results.entrySet()) {
-            XYSeries series1 = new XYSeries("Mote : "+  moteEntry.getKey().getEUI());
+            XYSeries series1 = new XYSeries("Cyclist : "+  moteEntry.getKey().getEUI());
             double noAdaptationValue = 1.0;
             for (Map.Entry<Integer, HashMap<Integer, Result>> moteEntry2 :moteEntry.getValue().entrySet()){
                 if(moteEntry2.getKey()==0){

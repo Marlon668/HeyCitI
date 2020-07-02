@@ -12,6 +12,7 @@ import gui.util.orsonpdf.PDFDocument;
 import gui.util.orsonpdf.PDFGraphics2D;
 import gui.util.orsonpdf.Page;
 import gui.MainGUI;
+import iot.Result;
 import iot.networkentity.Mote;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -71,21 +72,26 @@ public class Boxplot {
             dataset = new DefaultBoxAndWhiskerCategoryDataset();
             HashMap<Integer, HashMap<Integer,List<Double>>> resultsMote = airQuality.get(mote);
             double resultsNoAdaptation = 1;
-            if(normalise) {
-                resultsNoAdaptation = resultsMote.get(0).get(0).get(0);
-            }
-            resultsMote.remove(0);
             for (Map.Entry<Integer, HashMap<Integer, List<Double>>> moteEntry : resultsMote.entrySet()) {
-                for (Map.Entry<Integer,List<Double>> moteEntry3 : moteEntry.getValue().entrySet()) {
-                    List<Double> finalResults = moteEntry3.getValue();
-                    List<Double> resultsRelativeToNoAdaptation = new ArrayList<>();
-                    for(double result : finalResults){
-                        double newResult = result/resultsNoAdaptation;
-                        resultsRelativeToNoAdaptation.add(newResult);
+                if(moteEntry.getKey()==0){
+                    if(normalise) {
+                        for (Map.Entry<Integer,List<Double>> moteEntry3 : moteEntry.getValue().entrySet()) {
+                            resultsNoAdaptation = moteEntry3.getValue().get(0);
+                        }
                     }
-                    dataset.add(resultsRelativeToNoAdaptation,"" ,moteEntry.getKey());
-                    legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
+                }
+                else {
+                    for (Map.Entry<Integer, List<Double>> moteEntry3 : moteEntry.getValue().entrySet()) {
+                        List<Double> finalResults = moteEntry3.getValue();
+                        List<Double> resultsRelativeToNoAdaptation = new ArrayList<>();
+                        for (double result : finalResults) {
+                            double newResult = result / resultsNoAdaptation;
+                            resultsRelativeToNoAdaptation.add(newResult);
+                        }
+                        dataset.add(resultsRelativeToNoAdaptation, "", moteEntry.getKey());
+                        legend.add("Height : " + moteEntry.getKey() + "Width" + moteEntry3.getKey());
 
+                    }
                 }
             }
         }
@@ -101,7 +107,6 @@ public class Boxplot {
                 }
             }
         }
-        System.out.println(dataset.getColumnCount());
 
     }
 
@@ -109,14 +114,14 @@ public class Boxplot {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = null;
         if(data==0) {
-            yAxis = new NumberAxis("Air-Quality");
+            yAxis = new NumberAxis("Air Quality");
         }
         else{
             yAxis = new NumberAxis("Number of  adaptations");
         }
-        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
-        System.out.println(dataset.getMeanValue(0,0));
+        CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer(legend);
         renderer.setFillBox(true);
+        renderer.setOutlierRadius(5.0);
         renderer.setUseOutlinePaintForWhiskers(true);
         yAxis.setAutoRangeIncludesZero(false);
         renderer.setSeriesToolTipGenerator(1, new BoxAndWhiskerToolTipGenerator());
@@ -131,7 +136,13 @@ public class Boxplot {
             legendList.add(newLegend);
         }
         plot.setFixedLegendItems(legendList);
+        Font font3 = new Font("Arial", Font.PLAIN, 24);
+        plot.getRangeAxis().setLabelFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 28);
         JFreeChart chart = new JFreeChart("Cyclist : " + motes.get(index).getEUI(), plot);
+        chart.getTitle().setFont(font3);
+        font3 = new Font("Arial", Font.PLAIN, 18);
+        chart.getLegend().setItemFont(font3);
         chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);
     }

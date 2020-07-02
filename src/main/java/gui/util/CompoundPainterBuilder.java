@@ -114,7 +114,6 @@ public class CompoundPainterBuilder {
                 {
                     if(approach.getName()=="Best Path")
                     {
-                        System.out.println(approach.getName());
                         painters.add(new LinePainter(m.getPath().getWayPoints(), Color.MAGENTA, lineSize));
                     }
                     else{
@@ -122,7 +121,6 @@ public class CompoundPainterBuilder {
                     }
                 }
                 else{
-                    //System.out.println("niet ok");
                     painters.add(new LinePainter(m.getPath().getWayPoints(), ((UserMote) m).getColor(), lineSize));
                 }
             }
@@ -186,7 +184,6 @@ public class CompoundPainterBuilder {
             .forEach(m-> {
                 painters.add(new LinePainter(routingApplication.getRoute(m), ((UserMote) m).getColor(), lineSize));
             });
-            //.ifPresent(m -> painters.add(new LinePainter(routingApplication.getRoute(m), lineColor, lineSize)));
         return this;
     }
 

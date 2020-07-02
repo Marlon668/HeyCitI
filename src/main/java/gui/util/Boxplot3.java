@@ -75,7 +75,7 @@ public class Boxplot3 {
                     this.bufferSizeWidth = moteEntry3.getKey();
                     List<Double> finalResults = moteEntry3.getValue();
                     dataset.add(finalResults, "", moteEntry.getKey());
-                    legend.add("Effective value");
+                    legend.add("Average difference between Effective and predictive value of connection");
                 }
             }
         }
@@ -83,7 +83,7 @@ public class Boxplot3 {
 
     private void createChartPanel(ArrayList<Mote>motes,int index) {
         CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis("Air-Quality");
+        NumberAxis yAxis = new NumberAxis("Air Quality");
         CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer(legend);
         renderer.setFillBox(true);
         renderer.setUseOutlinePaintForWhiskers(true);
@@ -102,16 +102,16 @@ public class Boxplot3 {
         }
         plot.setFixedLegendItems(legendList);
         CategoryAxis domainAxis = plot.getDomainAxis();
-        domainAxis.setLowerMargin(0.15);
-        domainAxis.setUpperMargin(0.15);
-        domainAxis.setCategoryMargin(0.35);
+        domainAxis.setLowerMargin(0.40);
+        domainAxis.setUpperMargin(0.40);
+        renderer.setOutlierRadius(5.0);
         Font font3 = new Font("Arial", Font.PLAIN, 28);
         plot.getRangeAxis().setLabelFont(font3);
         font3 = new Font("Arial", Font.PLAIN, 30);
         String title = "Cyclist : " + motes.get(index).getEUI()  + " with buffer: K=" + bufferSizeWidth + " and horizon =" + bufferSizeHeight;
         JFreeChart chart = new JFreeChart(title, plot);
         chart.getTitle().setFont(font3);
-        font3 = new Font("Arial", Font.PLAIN, 20);
+        font3 = new Font("Arial", Font.PLAIN, 18);
         chart.getLegend().setItemFont(font3);
         chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);

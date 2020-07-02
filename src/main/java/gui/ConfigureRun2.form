@@ -37,7 +37,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <text value="Amount Runs"/>
+                  <text value="Number of runs"/>
                 </properties>
               </component>
               <component id="4485c" class="javax.swing.JLabel">
@@ -47,7 +47,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <text value="Amount Noise"/>
+                  <text value="Noiseratio"/>
                 </properties>
               </component>
               <component id="1a1cd" class="javax.swing.JSpinner" binding="amountNoiseSpinner">

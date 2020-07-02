@@ -45,7 +45,6 @@ public class EnvironmentWriter {
                         type.appendChild(Function);
                         break;
                     case "PolynomialSource":
-                        System.out.println(source.getType());
                         @SuppressWarnings("unchecked")
                         List<Pair<Double,Double>> pointsKnown = (List<Pair<Double, Double>>) source.getDefiningFeatures();
                         for(Pair<Double,Double> point:pointsKnown){
@@ -55,7 +54,6 @@ public class EnvironmentWriter {
                         }
                         break;
                     default:
-                        System.out.println("Invalid type: " + source.getType());
                 }
             }
 

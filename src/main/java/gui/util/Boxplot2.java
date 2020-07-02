@@ -107,6 +107,7 @@ public class Boxplot2 {
         renderer.setSeriesToolTipGenerator(1, new BoxAndWhiskerToolTipGenerator());
         renderer.setMedianVisible(true);
         renderer.setMeanVisible(false);
+        renderer.setOutlierRadius(5.0);
         plot = new CategoryPlot(dataset, xAxis, yAxis, renderer);
         plot.getDomainAxis(0).setVisible(false);
         plot.setDrawingSupplier(new ChartDrawingSupplier());
@@ -127,7 +128,7 @@ public class Boxplot2 {
         String title = "Cyclist : " + motes.get(index).getEUI()  + " with buffer: K=" + bufferSizeWidth + " and horizon =" + bufferSizeHeight;
         JFreeChart chart = new JFreeChart(title, plot);
         chart.getTitle().setFont(font3);
-        font3 = new Font("Arial", Font.PLAIN, 20);
+        font3 = new Font("Arial", Font.PLAIN, 18);
         chart.getLegend().setItemFont(font3);
         chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);

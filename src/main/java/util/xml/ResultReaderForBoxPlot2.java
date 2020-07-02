@@ -25,10 +25,8 @@ public class ResultReaderForBoxPlot2 {
             for (int i = 0; i < resultList.getLength(); i++) {
                 Element moteElement = (Element) resultList.item(i);
                 long moteEUI = Long.parseLong(moteElement.getFirstChild().getNodeValue());
-                System.out.println("Mote : " + moteEUI);
                 for (Mote mote : simulationRunner.getEnvironment().getMotes()) {
                     if (mote.getEUI() == moteEUI) {
-                        System.out.println("Mote : " + moteEUI);
                         var height = moteElement.getElementsByTagName("BufferSizeHeight");
                         HashMap<Integer, HashMap<Integer, List<Double>>> results1 = new HashMap<>();
                         for (int j = 0; j < height.getLength(); j++) {
@@ -71,10 +69,8 @@ public class ResultReaderForBoxPlot2 {
             for (int i = 0; i < resultList.getLength(); i++) {
                 Element moteElement = (Element) resultList.item(i);
                 long moteEUI = Long.parseLong(moteElement.getFirstChild().getNodeValue());
-                System.out.println("Mote : " + moteEUI);
                 for (Mote mote : simulationRunner.getEnvironment().getMotes()) {
                     if (mote.getEUI() == moteEUI) {
-                        System.out.println("Mote : " + moteEUI);
                         var height = moteElement.getElementsByTagName("BufferSizeHeight");
                         HashMap<Integer, HashMap<Integer, List<Double>>> results1 = new HashMap<>();
                         for (int j = 0; j < height.getLength(); j++) {
@@ -92,7 +88,6 @@ public class ResultReaderForBoxPlot2 {
                                     double predictionValue = Double.parseDouble(adaptationElementi.getFirstChild().getNodeValue());
                                     resultsPredictions.add(predictionValue);
                                 }
-                                System.out.println("Size : " +  resultsPredictions.size());
                                 results2.put(bufferWidth,resultsPredictions);
                             }
                             results1.put(bufferHeight, results2);

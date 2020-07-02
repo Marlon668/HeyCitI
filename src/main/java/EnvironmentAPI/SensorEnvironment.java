@@ -78,8 +78,6 @@ public class SensorEnvironment {
             totalPollution += getDataFromSensors(newPoint);
 
         }
-        //System.out.println("Time : " + getPoll().getTime().toNanoOfDay());
-        //System.out.println("TotalPollution : " + totalPollution/(amount + 2));
         return totalPollution/(amount+2);
     }
 

@@ -27,6 +27,7 @@ import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
+import parsii.tokenizer.ParseException;
 import util.Pair;
 
 
@@ -149,7 +150,12 @@ public class PollutionConfig {
 
 
         addFunctionalSensorButton.addActionListener(e -> {
-            Source newSource = SourceFactory.createFunctionSource("0", environment.getMapCenter(), TimeUnit.MINUTES);
+            Source newSource = null;
+            try {
+                newSource = SourceFactory.createFunctionSource("0", environment.getMapCenter(), TimeUnit.MINUTES);
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            }
             remainingList.add(newSource);
             list1.setListData(remainingList.toArray());
 
@@ -388,14 +394,18 @@ public class PollutionConfig {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            saveToSource();
+            try {
+                saveToSource();
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            }
             setSourceFunction();
         }
 
 
     }
 
-    public void saveToSource() {
+    public void saveToSource() throws ParseException {
         if (!list1.isSelectionEmpty()) {
             int currentlyChanged = list1.getSelectedIndex();
             Source toChange = remainingList.get(currentlyChanged);
@@ -446,7 +456,11 @@ public class PollutionConfig {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            saveToSource();
+            try {
+                saveToSource();
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            }
             JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Save PollutionConfiguration");
             fc.setFileFilter(new FileNameExtensionFilter("xml output", "xml"));

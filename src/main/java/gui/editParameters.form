@@ -85,7 +85,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <text value="Amount Runs"/>
+                  <text value="Number of runs"/>
                 </properties>
               </component>
               <component id="24174" class="javax.swing.JSpinner" binding="runs">

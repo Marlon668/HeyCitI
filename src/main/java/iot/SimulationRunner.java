@@ -25,6 +25,7 @@ import selfadaptation.instrumentation.MoteEffector;
 import selfadaptation.instrumentation.MoteProbe;
 import util.MutableInteger;
 import util.Pair;
+import util.Path;
 import util.Statistics;
 import util.xml.*;
 
@@ -59,7 +60,7 @@ public class SimulationRunner {
     public NetworkServer networkServer;
     private MutableInteger updateFrequency;
     private SimulationUpdateListener listener;
-    private HashMap<Mote, Pair<Long, Long>> timeResults;
+    private HashMap<Mote, List<Pair<Long, Long>>> timeResults;
     private int amountRuns;
     private boolean multipleRun;
     private boolean couldLoadPollutionFile;
@@ -307,10 +308,6 @@ public class SimulationRunner {
         return simulation;
     }
 
-    public Map<Long,List<Double>> getInformation(){
-        return simulation.getInformation();
-    }
-
     public QualityOfService getQoS() {
         return QoS;
     }
@@ -445,7 +442,9 @@ public class SimulationRunner {
         this.updateFrequency = updateFrequency;
         this.listener = listener;
         HashMap<Mote,Pair<Double,Integer>> result = new HashMap<>();
-        multipleRun(this.timeResults,result);
+        this.timeResults  = new HashMap<Mote, List<Pair<Long, Long>>>();
+        setupMultipleRun(true);
+        simulate(updateFrequency, listener);
     }
 
     /**
@@ -476,7 +475,7 @@ public class SimulationRunner {
             if (mote instanceof UserMote) {
                 HashMap<Integer, HashMap<Integer, Result>> results1 = new HashMap<>();
                 HashMap<Integer, Result> results2 = new HashMap<>();
-                Result result = new Result(simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI()), routingApplication.getAmountAdaptations().get(mote.getEUI()), simulation.getDistanceMote().get(mote));
+                Result result = new Result(simulation.getRouteEvaluator().getTotalCostPath(mote.getEUI()), 0, simulation.getDistanceMote().get(mote));
                     while(currenctBufferSizeHeight<=maximumBufferSizeHeight) {
                     results2.put(currenctBufferSizeHeight, result);
                     currenctBufferSizeHeight +=1;
@@ -749,6 +748,7 @@ public class SimulationRunner {
         resultsBoxPlotAirQuality = new HashMap<>();
         resultsBoxPlotPredicatedAirQuality = new HashMap<>();
         Pair<Integer,Integer> firstConfiguration = configurationList.get(0);
+        this.getParameters().setAnalysingMethod(0);
         int currenctBufferSizeHeight = firstConfiguration.getLeft();
         int currentBufferSizeWidth = firstConfiguration.getRight();
         configurationList.remove(0);
@@ -889,6 +889,7 @@ public class SimulationRunner {
         int currentBufferSizeWidth = firstConfiguration.getRight();
         configurationList.remove(0);
         this.getParameters().setBuffersizeWidth(currentBufferSizeWidth);
+        this.getParameters().setAnalysingMethod(0);
         this.getParameters().setBufferSizeHeight(currenctBufferSizeHeight);
         this.getParameters().setSetupFirst(1);
         simulation.setApproach(algorithms.get(3));
@@ -1018,12 +1019,14 @@ public class SimulationRunner {
                 for(Mote mote : environment.getMotes()) {
                     Pair<Long, Long> timeMote = time.get(mote);
                     if (timeResults.get(mote) == null){
-                        timeResults.put(mote,timeMote);
+                        List<Pair<Long,Long>> timeMoteList = new ArrayList<>();
+                        timeMoteList.add(timeMote);
+                        timeResults.put(mote,timeMoteList);
                     }
                     else{
-                        long average = timeResults.get(mote).getLeft() + timeMote.getLeft();
-                        long maxTime = timeResults.get(mote).getRight() + timeMote.getRight();
-                        timeResults.put(mote,new Pair(average,maxTime));
+                        long average = timeMote.getLeft();
+                        long maxTime = timeMote.getRight();
+                        timeResults.get(mote).add(new Pair<>(average,maxTime));
                     }
                 }
             }
@@ -1031,11 +1034,17 @@ public class SimulationRunner {
             String message = "Evaluation of the path \n";
             for(Mote mote : environment.getMotes()){
                 if(mote instanceof UserMote) {
-                    long averageTime = time.get(mote).getLeft()/getParameters().getAmountRuns();
-                    long maxTime = time.get(mote).getRight()/getParameters().getAmountRuns();
-                    message += "EUI: " + mote.getEUI() + "  :    " + result.get(mote).getLeft()+ "\n" +
-                        " , Amount adaptations: " + result.get(mote).getRight() + " , AverageTimeDecision: " + averageTime +
-                        " Max Time" + maxTime + "\n";
+                    long averageTime = calculateAverageAverageTimeForTakingDecision(timeResults.get(mote));
+                    long maxTime = calculateAverageWorstForTakingDecision(timeResults.get(mote));
+                    double deviationAverageTime = calculateDeviationAverageTime(timeResults.get(mote),averageTime)/1000000.00;
+                    double deviationMaxTime = calculateDeviationWorstTime(timeResults.get(mote),maxTime)/1000000.00;
+                    maxTime = maxTime/1000000;
+                    averageTime = averageTime/1000000;
+                    message += "EUI: " + String.format("%21s",mote.getEUI()) + " : " + "Air Quality: " + String.format("%.2f",(double)Math.round(result.get(mote).getLeft() * 100.00) / 100.00) +
+                        " , Number of adaptations: " + String.format("%4s",result.get(mote).getRight()) + " , " +
+                        "AverageTimeDecision(in ms): " + String.format("%.2f",(double)Math.round(averageTime* 100.00) / 100.00) + " , Standard deviation: " +
+                        String.format("%.2f",(double)Math.round(deviationAverageTime* 100.0) / 100.0) + " , " +"Max Time (in ms): " +String.format("%.2f",(double)Math.round(maxTime * 100.00) / 100.00) +
+                        " , Standard deviation: " + String.format("%.2f",(double)Math.round(deviationMaxTime* 100.00) / 100.00) + "\n";
                 }
             }
             JOptionPane.showMessageDialog(null, message, "Results", JOptionPane.INFORMATION_MESSAGE);
@@ -1045,6 +1054,50 @@ public class SimulationRunner {
 
         }
         }
+
+    /**
+     * Calculates the average of the values of a list
+     * @param timeList : timeList Containing values of average decision time and worst decision time
+     *
+     */
+    public long calculateAverageAverageTimeForTakingDecision(List<Pair<Long,Long>> timeList){
+        long average = 0;
+        for (Pair<Long, Long> longLongPair : timeList) {
+            average += longLongPair.getLeft();
+        }
+        return average/timeList.size();
+    }
+
+    /**
+     * Calculates the average of the values of a list
+     * @param timeList : timeList Containing values of average decision time and worst decision time
+     *
+     */
+    public long calculateAverageWorstForTakingDecision(List<Pair<Long,Long>> timeList){
+        long average = 0;
+        for (Pair<Long, Long> longLongPair : timeList) {
+            average += longLongPair.getRight();
+        }
+        return average/timeList.size();
+    }
+
+    public double calculateDeviationAverageTime(List<Pair<Long,Long>> timeResults,long averageTime){
+        long deviation = 0;
+        for (Pair<Long, Long> timeResult : timeResults) {
+            deviation += (timeResult.getLeft() - averageTime)*(timeResult.getLeft() - averageTime);
+        }
+        return Math.sqrt(deviation)/(timeResults.size()-1);
+
+    }
+
+    public double calculateDeviationWorstTime(List<Pair<Long,Long>> timeResults,long averageTime){
+        long deviation = 0;
+        for (Pair<Long, Long> timeResult : timeResults) {
+            deviation += (timeResult.getRight() - averageTime)*(timeResult.getRight() - averageTime);
+        }
+        return Math.sqrt(deviation)/(timeResults.size()-1);
+    }
+
 
     /**
      * Set the simulator up for MultipleRun
@@ -1064,7 +1117,6 @@ public class SimulationRunner {
      */
     public void setupSimulationRunner() {
         getEnvironmentAPI().getPoll().clear();
-        timeResults = new HashMap<Mote, Pair<Long, Long>>();
         pollutionGrid.clean();
         sensorEnvironment.getPoll().clear();
 
@@ -1165,9 +1217,7 @@ public class SimulationRunner {
         new Thread(() -> {
             long simulationStep = 0;
             while (!simulation.RunisFinished()) {
-                //synchronized (this.simulation){
                 this.simulation.simulateStepRun2(getEnvironmentAPI().getPoll());
-                //};
                 // Visualize every x seconds
                 if (simulationStep++ % (updateFrequency.intValue() * 1000) == 0) {
                     listener.update();
@@ -1351,12 +1401,11 @@ public class SimulationRunner {
     }
 
     public void saveResultsBoxPlotToFile3(File file){
-        ResultWriterForBoxPlot2.saveResultsToFile(this,resultsBoxPlotAirQuality,resultsBoxPlotPredicatedAirQuality,file);
+        ResultWriterForBoxPlot3.saveResultsToFile(errorListConnections,file);
     }
 
     public void readResultsBoxPlotFromFile3(File file) throws ParserConfigurationException {
-        this.resultsBoxPlotAirQuality = ResultReaderForBoxPlot2.readResultsAirQuality(file,this);
-        this.resultsBoxPlotPredicatedAirQuality = ResultReaderForBoxPlot2.readResultsPredictions(file,this);
+        this.errorListConnections=ResultReaderForBoxPlot3.readResultsDifference(file,this);
     }
 
     public void saveSimulationToFile(File file) {
